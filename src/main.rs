@@ -110,7 +110,6 @@ impl Tower {
             for monster in monsters.iter_mut() {
                 if self.position_is_in_attack_range(monster.get_center_pos_abs()) {
                     damage_dealt = true;
-                    println!("Damage monster!");
                     monster.recieve_damage(Tower::DAMAGE);
                 }
             }
@@ -143,8 +142,8 @@ impl Tower {
 
         for monster in monsters.iter() {
             let monster_center = [
-                monster.pos.0 + Monster::SIZE/2.0,
-                monster.pos.1 + Monster::SIZE/2.0,
+                monster.position[0] + Monster::SIZE/2.0,
+                monster.position[1] + Monster::SIZE/2.0,
             ];
 
             if self.position_is_in_attack_range(monster_center) {
@@ -180,26 +179,48 @@ impl Tower {
 }
 
 pub struct TowerIcon {}
+
+#[derive(Eq, Ord, PartialEq, PartialOrd, Debug)]
+pub enum MonsterState // TODO: put in namespace.
+{
+    Walking,
+    Attacking,
+    Dead,
+}
 pub struct Monster {
-    pos: (f32, f32),
+    position: [f32; 2],
     speed: f32,
     health: f32,
     move_goal: usize,
+    state: MonsterState,
 }
 
 impl Monster {
     const SIZE: f32 = 20.0;
 
     pub fn get_center_pos_abs(&self) -> [f32; 2] {
-        [self.pos.0 + Monster::SIZE/2.0, self.pos.1 + Monster::SIZE/2.0]
+        [self.position[0] + Monster::SIZE/2.0, self.position[1] + Monster::SIZE/2.0]
     }
 
     pub fn recieve_damage(&mut self, damage: f32) {
         self.health -= damage;
     }
 
+    /// Try moving towards the currently targeted path block position.
     fn try_moving(&mut self, elapsed: f32, path_blocks: &Vec<Block>) {
-        // Block position we are currently moving towards.
+        // Don't move unless in walking state.
+        if self.state != MonsterState::Walking { return }
+
+        // Check if at end of path.
+        if self.move_goal == path_blocks.len() {
+            self.state = MonsterState::Attacking;
+            return; // No more moving to do.
+
+            // Queue damage on player.
+            // Mark as dead.
+            // Enter Monster_dealt_damage state&wait for cleanup?
+        }
+
         // Goal is for center of monster to pass center of block position.
         let _goal = path_blocks[self.move_goal].pos;
         let goal_x = _goal.0 * BLOCK_SIZE + BLOCK_SIZE/2.0 - Monster::SIZE/2.0;
@@ -207,7 +228,7 @@ impl Monster {
         let goal = (goal_x, goal_y);
 
         // Distance to next goal position.
-        let mut dir = (goal.0 - self.pos.0, goal.1 - self.pos.1);
+        let mut dir = (goal.0 - self.position[0], goal.1 - self.position[1]);
         let mut dist = dir.0*dir.0+dir.1*dir.1;
 
         // Special case where we are exactly at the right position.
@@ -226,23 +247,23 @@ impl Monster {
             if dist < self.speed*elapsed {
                 self.move_goal += 1;
 
-                self.pos.0 += dir.0*dist;
-                self.pos.1 += dir.1*dist;
+                self.position[0] += dir.0*dist;
+                self.position[1] += dir.1*dist;
             } else {
                 // 1 step will not reach the goal.
-                self.pos.0 += dir.0*self.speed*elapsed;
-                self.pos.1 += dir.1*self.speed*elapsed;
+                self.position[0] += dir.0*self.speed*elapsed;
+                self.position[1] += dir.1*self.speed*elapsed;
             }
         }
     }
 
     fn update(&mut self, elapsed: f32, path_blocks: &Vec<Block>) {
-        self.try_moving(elapsed, path_blocks);
-
         // Check if dead.
         if self.health <= 0.0 {
-            println!("I am dead!");
+            self.state = MonsterState::Dead;
         }
+
+        self.try_moving(elapsed, path_blocks);
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
@@ -255,8 +276,8 @@ impl Monster {
 
         let location = (
             ggez::mint::Point2 {
-                x: self.pos.0,
-                y: self.pos.1,
+                x: self.position[0],
+                y: self.position[1],
             },
         );
         graphics::draw(ctx, &rectangle, location)?;
@@ -329,8 +350,9 @@ impl Board {
             Monster {
                 health: 100.0,
                 speed: 100.0,
-                pos: (0.0, 0.0),
+                position: [0.0, 0.0],
                 move_goal: 0,
+                state: MonsterState::Walking,
             }
         );
 
@@ -451,9 +473,12 @@ impl MainState {
 impl EventHandler for MainState {
     fn update(&mut self, _: &mut ggez::Context) -> std::result::Result<(), ggez::GameError> {
         let elapsed = self.time.elapsed().as_millis() as f32 / 1000.0;
+
         for monster in self.board.monsters.iter_mut() {
             monster.update(elapsed, &self.board.path_blocks);
         }
+        self.board.monsters.retain(|x| x.state != MonsterState::Dead);
+
         for tower in self.board.towers.iter_mut() {
             tower.update(elapsed, &mut self.board.monsters);
         }
