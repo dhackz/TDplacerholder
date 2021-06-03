@@ -86,11 +86,15 @@ impl Tower {
         }
     }
 
-    fn position_is_in_attack_range(&self, position_abs: [f32; 2]) -> bool {
-        let tower_center_pos_abs = [
+    pub fn get_center_pos_abs(&self) -> [f32; 2] {
+        [
             self.position[0] * BLOCK_SIZE + BLOCK_SIZE/2.0,
             self.position[1] * BLOCK_SIZE + BLOCK_SIZE/2.0,
-        ];
+        ]
+    }
+
+    fn position_is_in_attack_range(&self, position_abs: [f32; 2]) -> bool {
+        let tower_center_pos_abs = self.get_center_pos_abs();
 
         let dx = tower_center_pos_abs[0] - position_abs[0];
         let dy = tower_center_pos_abs[1] - position_abs[1];
@@ -133,13 +137,15 @@ impl Tower {
                 y: self.position[1] * BLOCK_SIZE,
             },
         );
-        let center = [
-            self.position[0] * BLOCK_SIZE + BLOCK_SIZE/2.0,
-            self.position[1] * BLOCK_SIZE + BLOCK_SIZE/2.0,
-        ];
+
+        let center = self.get_center_pos_abs();
 
         graphics::draw(ctx, &rectangle, location)?;
 
+        Ok(())
+    }
+
+    pub fn draw_attacks(&mut self, ctx: &mut Context, monsters: &Vec<Monster>) -> GameResult {
         for monster in monsters.iter() {
             let monster_center = [
                 monster.position[0] + Monster::SIZE/2.0,
@@ -147,7 +153,7 @@ impl Tower {
             ];
 
             if self.position_is_in_attack_range(monster_center) {
-                self.draw_attack(ctx, center, monster_center);
+                self.draw_attack(ctx, self.get_center_pos_abs(), monster_center);
             }
         }
         Ok(())
@@ -204,6 +210,10 @@ impl Monster {
 
     pub fn recieve_damage(&mut self, damage: f32) {
         self.health -= damage;
+
+        if self.health <= 0.0 {
+            self.state = MonsterState::Dead;
+        }
     }
 
     /// Try moving towards the currently targeted path block position.
@@ -258,9 +268,9 @@ impl Monster {
     }
 
     fn update(&mut self, elapsed: f32, path_blocks: &Vec<Block>) {
-        // Check if dead.
-        if self.health <= 0.0 {
-            self.state = MonsterState::Dead;
+        // Don't do anything if dead.
+        if self.state == MonsterState::Dead {
+            return;
         }
 
         self.try_moving(elapsed, path_blocks);
@@ -499,6 +509,11 @@ impl EventHandler for MainState {
 
         for tower in self.board.towers.iter_mut() {
             tower.draw(ctx, &self.board.monsters)?;
+        }
+
+        // Draw tower attacks.
+        for tower in self.board.towers.iter_mut() {
+            tower.draw_attacks(ctx, &self.board.monsters)?;
         }
 
         self.board.base.draw(ctx)?;
