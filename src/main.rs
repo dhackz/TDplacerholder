@@ -1,5 +1,5 @@
 use ggez::{
-    graphics, Context, ContextBuilder, GameResult,
+    graphics, Context, GameResult,
     event::{self, EventHandler},
 };
 
@@ -20,8 +20,6 @@ const GOLD_Y: f32 = 30.0;
 
 const HP_X: f32 = 30.0;
 const HP_Y: f32 = 50.0;
-
-const MONSTER_SIZE: f32 = 20.0;
 
 pub struct Block {
     pos: (f32, f32),
@@ -71,11 +69,57 @@ impl Base {
     }
 }
 
-pub struct Tower {
-    pos: (f32, f32),
+struct Tower {
+    position: [f32; 2],
+    attack_cooldown: f32,
 }
 
 impl Tower {
+    const ATTACK_RANGE: f32 = 100.0;  // Pixels.
+    const ATTACK_TIMER: f32 = 1000.0; // Milliseconds.
+    const DAMAGE: f32 = 10.0;
+
+    pub fn new(position: [f32; 2]) -> Tower {
+        Tower {
+            position,
+            attack_cooldown: 0.0,
+        }
+    }
+
+    fn position_is_in_attack_range(&self, position_abs: [f32; 2]) -> bool {
+        let tower_center_pos_abs = [
+            self.position[0] * BLOCK_SIZE + BLOCK_SIZE/2.0,
+            self.position[1] * BLOCK_SIZE + BLOCK_SIZE/2.0,
+        ];
+
+        let dx = tower_center_pos_abs[0] - position_abs[0];
+        let dy = tower_center_pos_abs[1] - position_abs[1];
+
+        dx*dx + dy*dy < Tower::ATTACK_RANGE*Tower::ATTACK_RANGE
+    }
+
+    pub fn update(&mut self, elapsed: f32, monsters: &mut Vec<Monster>) {
+        self.attack_cooldown -= elapsed;
+
+        if self.attack_cooldown < 0.0 {
+            self.attack_cooldown = 0.0;
+        }
+
+        if self.attack_cooldown == 0.0 {
+            let mut damage_dealt = false;
+            for monster in monsters.iter_mut() {
+                if self.position_is_in_attack_range(monster.get_center_pos_abs()) {
+                    damage_dealt = true;
+                    println!("Damage monster!");
+                    monster.recieve_damage(Tower::DAMAGE);
+                }
+            }
+            if damage_dealt {
+                self.attack_cooldown = Tower::ATTACK_TIMER;
+            }
+        }
+    }
+
     pub fn draw(&mut self, ctx: &mut Context, monsters: &Vec<Monster>) -> GameResult {
         let rectangle = graphics::Mesh::new_rectangle(
             ctx,
@@ -86,44 +130,47 @@ impl Tower {
 
         let location = (
             ggez::mint::Point2 {
-                x: self.pos.0 * BLOCK_SIZE,
-                y: self.pos.1 * BLOCK_SIZE,
+                x: self.position[0] * BLOCK_SIZE,
+                y: self.position[1] * BLOCK_SIZE,
             },
         );
         let center = [
-            self.pos.0 * BLOCK_SIZE + BLOCK_SIZE/2.0,
-            self.pos.1 * BLOCK_SIZE + BLOCK_SIZE/2.0,
+            self.position[0] * BLOCK_SIZE + BLOCK_SIZE/2.0,
+            self.position[1] * BLOCK_SIZE + BLOCK_SIZE/2.0,
         ];
+
+        graphics::draw(ctx, &rectangle, location)?;
 
         for monster in monsters.iter() {
             let monster_center = [
-                monster.pos.0 + MONSTER_SIZE/2.0,
-                monster.pos.1 + MONSTER_SIZE/2.0,
+                monster.pos.0 + Monster::SIZE/2.0,
+                monster.pos.1 + Monster::SIZE/2.0,
             ];
-            let dx = center[0] - monster_center[0];
-            let dy = center[1] - monster_center[1];
-            
-            if dx*dx + dy*dy < 1000.0 {
+
+            if self.position_is_in_attack_range(monster_center) {
                 self.draw_attack(ctx, center, monster_center);
             }
         }
-
-        graphics::draw(ctx, &rectangle, location)?;
         Ok(())
     }
 
-    fn draw_attack(&mut self, ctx: &mut Context, from: [f32; 2], to: [f32; 2]) -> GameResult {
+    fn draw_attack(
+        &mut self,
+        ctx: &mut Context,
+        from_abs: [f32; 2],
+        to_abs: [f32; 2]
+    ) -> GameResult {
         let line = graphics::Mesh::new_line(
             ctx,
-            &[from, to],
+            &[from_abs, to_abs],
             3.0,
             ggez::graphics::Color::new(0.0, 1.0, 1.0, 1.0),
         )?;
 
         let location = (
             ggez::mint::Point2 {
-                x: from[0],
-                y: from[1],
+                x: 0.0,
+                y: 0.0,
             },
         );
 
@@ -136,17 +183,27 @@ pub struct TowerIcon {}
 pub struct Monster {
     pos: (f32, f32),
     speed: f32,
-    hp: i32,
+    health: f32,
     move_goal: usize,
 }
 
 impl Monster {
-    fn update(&mut self, elapsed: f32, blocks: &Vec<Block>) {
+    const SIZE: f32 = 20.0;
+
+    pub fn get_center_pos_abs(&self) -> [f32; 2] {
+        [self.pos.0 + Monster::SIZE/2.0, self.pos.1 + Monster::SIZE/2.0]
+    }
+
+    pub fn recieve_damage(&mut self, damage: f32) {
+        self.health -= damage;
+    }
+
+    fn try_moving(&mut self, elapsed: f32, path_blocks: &Vec<Block>) {
         // Block position we are currently moving towards.
         // Goal is for center of monster to pass center of block position.
-        let _goal = blocks[self.move_goal].pos;
-        let goal_x = _goal.0 * BLOCK_SIZE + BLOCK_SIZE/2.0 - MONSTER_SIZE/2.0;
-        let goal_y = _goal.1 * BLOCK_SIZE + BLOCK_SIZE/2.0 - MONSTER_SIZE/2.0;
+        let _goal = path_blocks[self.move_goal].pos;
+        let goal_x = _goal.0 * BLOCK_SIZE + BLOCK_SIZE/2.0 - Monster::SIZE/2.0;
+        let goal_y = _goal.1 * BLOCK_SIZE + BLOCK_SIZE/2.0 - Monster::SIZE/2.0;
         let goal = (goal_x, goal_y);
 
         // Distance to next goal position.
@@ -179,11 +236,20 @@ impl Monster {
         }
     }
 
+    fn update(&mut self, elapsed: f32, path_blocks: &Vec<Block>) {
+        self.try_moving(elapsed, path_blocks);
+
+        // Check if dead.
+        if self.health <= 0.0 {
+            println!("I am dead!");
+        }
+    }
+
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         let rectangle = graphics::Mesh::new_rectangle(
             ctx,
             graphics::DrawMode::fill(),
-            [0.0, 0.0, MONSTER_SIZE, MONSTER_SIZE].into(),
+            [0.0, 0.0, Monster::SIZE, Monster::SIZE].into(),
             ggez::graphics::Color::new(0.8, 0.0, 0.0, 1.0),
         )?;
 
@@ -199,7 +265,7 @@ impl Monster {
 }
 
 pub struct Board {
-    blocks: Vec<Block>,
+    path_blocks: Vec<Block>,
     towers: Vec<Tower>,
     monsters: Vec<Monster>,
     base: Base,
@@ -207,61 +273,61 @@ pub struct Board {
 
 impl Board {
     fn generate(seed: u64, length: u32) -> Board {
-        let mut blocks = Vec::new();
-        blocks.push( Block { pos: (0.0, 0.0) } );
-        blocks.push( Block { pos: (0.0, 1.0) } );
-        blocks.push( Block { pos: (0.0, 2.0) } );
-        blocks.push( Block { pos: (1.0, 2.0) } );
-        blocks.push( Block { pos: (2.0, 2.0) } );
-        blocks.push( Block { pos: (2.0, 3.0) } );
-        blocks.push( Block { pos: (2.0, 3.0) } );
-        blocks.push( Block { pos: (2.0, 4.0) } );
-        blocks.push( Block { pos: (2.0, 5.0) } );
-        blocks.push( Block { pos: (3.0, 5.0) } );
-        blocks.push( Block { pos: (4.0, 5.0) } );
-        blocks.push( Block { pos: (5.0, 5.0) } );
-        blocks.push( Block { pos: (6.0, 5.0) } );
-        blocks.push( Block { pos: (7.0, 5.0) } );
-        blocks.push( Block { pos: (8.0, 5.0) } );
-        blocks.push( Block { pos: (9.0, 5.0) } );
-        blocks.push( Block { pos: (10.0, 5.0) } );
-        blocks.push( Block { pos: (11.0, 5.0) } );
-        blocks.push( Block { pos: (12.0, 5.0) } );
-        blocks.push( Block { pos: (13.0, 5.0) } );
-        blocks.push( Block { pos: (14.0, 5.0) } );
-        blocks.push( Block { pos: (15.0, 5.0) } );
-        blocks.push( Block { pos: (16.0, 5.0) } );
-        blocks.push( Block { pos: (17.0, 5.0) } );
-        blocks.push( Block { pos: (18.0, 5.0) } );
-        blocks.push( Block { pos: (19.0, 5.0) } );
-        blocks.push( Block { pos: (20.0, 5.0) } );
-        blocks.push( Block { pos: (20.0, 6.0) } );
-        blocks.push( Block { pos: (20.0, 7.0) } );
-        blocks.push( Block { pos: (20.0, 8.0) } );
-        blocks.push( Block { pos: (20.0, 9.0) } );
-        blocks.push( Block { pos: (19.0, 9.0) } );
-        blocks.push( Block { pos: (18.0, 9.0) } );
-        blocks.push( Block { pos: (17.0, 9.0) } );
-        blocks.push( Block { pos: (16.0, 9.0) } );
-        blocks.push( Block { pos: (15.0, 9.0) } );
-        blocks.push( Block { pos: (14.0, 9.0) } );
-        blocks.push( Block { pos: (13.0, 9.0) } );
-        blocks.push( Block { pos: (12.0, 9.0) } );
-        blocks.push( Block { pos: (11.0, 9.0) } );
-        blocks.push( Block { pos: (10.0, 9.0) } );
-        blocks.push( Block { pos: (9.0, 9.0) } );
-        blocks.push( Block { pos: (8.0, 9.0) } );
-        blocks.push( Block { pos: (7.0, 9.0) } );
-        blocks.push( Block { pos: (6.0, 9.0) } );
-        blocks.push( Block { pos: (5.0, 9.0) } );
-        blocks.push( Block { pos: (4.0, 9.0) } );
-        blocks.push( Block { pos: (3.0, 9.0) } );
-        blocks.push( Block { pos: (2.0, 9.0) } );
+        let mut path_blocks = Vec::new();
+        path_blocks.push( Block { pos: (0.0, 0.0) } );
+        path_blocks.push( Block { pos: (0.0, 1.0) } );
+        path_blocks.push( Block { pos: (0.0, 2.0) } );
+        path_blocks.push( Block { pos: (1.0, 2.0) } );
+        path_blocks.push( Block { pos: (2.0, 2.0) } );
+        path_blocks.push( Block { pos: (2.0, 3.0) } );
+        path_blocks.push( Block { pos: (2.0, 3.0) } );
+        path_blocks.push( Block { pos: (2.0, 4.0) } );
+        path_blocks.push( Block { pos: (2.0, 5.0) } );
+        path_blocks.push( Block { pos: (3.0, 5.0) } );
+        path_blocks.push( Block { pos: (4.0, 5.0) } );
+        path_blocks.push( Block { pos: (5.0, 5.0) } );
+        path_blocks.push( Block { pos: (6.0, 5.0) } );
+        path_blocks.push( Block { pos: (7.0, 5.0) } );
+        path_blocks.push( Block { pos: (8.0, 5.0) } );
+        path_blocks.push( Block { pos: (9.0, 5.0) } );
+        path_blocks.push( Block { pos: (10.0, 5.0) } );
+        path_blocks.push( Block { pos: (11.0, 5.0) } );
+        path_blocks.push( Block { pos: (12.0, 5.0) } );
+        path_blocks.push( Block { pos: (13.0, 5.0) } );
+        path_blocks.push( Block { pos: (14.0, 5.0) } );
+        path_blocks.push( Block { pos: (15.0, 5.0) } );
+        path_blocks.push( Block { pos: (16.0, 5.0) } );
+        path_blocks.push( Block { pos: (17.0, 5.0) } );
+        path_blocks.push( Block { pos: (18.0, 5.0) } );
+        path_blocks.push( Block { pos: (19.0, 5.0) } );
+        path_blocks.push( Block { pos: (20.0, 5.0) } );
+        path_blocks.push( Block { pos: (20.0, 6.0) } );
+        path_blocks.push( Block { pos: (20.0, 7.0) } );
+        path_blocks.push( Block { pos: (20.0, 8.0) } );
+        path_blocks.push( Block { pos: (20.0, 9.0) } );
+        path_blocks.push( Block { pos: (19.0, 9.0) } );
+        path_blocks.push( Block { pos: (18.0, 9.0) } );
+        path_blocks.push( Block { pos: (17.0, 9.0) } );
+        path_blocks.push( Block { pos: (16.0, 9.0) } );
+        path_blocks.push( Block { pos: (15.0, 9.0) } );
+        path_blocks.push( Block { pos: (14.0, 9.0) } );
+        path_blocks.push( Block { pos: (13.0, 9.0) } );
+        path_blocks.push( Block { pos: (12.0, 9.0) } );
+        path_blocks.push( Block { pos: (11.0, 9.0) } );
+        path_blocks.push( Block { pos: (10.0, 9.0) } );
+        path_blocks.push( Block { pos: (9.0, 9.0) } );
+        path_blocks.push( Block { pos: (8.0, 9.0) } );
+        path_blocks.push( Block { pos: (7.0, 9.0) } );
+        path_blocks.push( Block { pos: (6.0, 9.0) } );
+        path_blocks.push( Block { pos: (5.0, 9.0) } );
+        path_blocks.push( Block { pos: (4.0, 9.0) } );
+        path_blocks.push( Block { pos: (3.0, 9.0) } );
+        path_blocks.push( Block { pos: (2.0, 9.0) } );
 
         let mut monsters = Vec::new();
         monsters.push(
             Monster {
-                hp: 10,
+                health: 100.0,
                 speed: 100.0,
                 pos: (0.0, 0.0),
                 move_goal: 0,
@@ -269,7 +335,7 @@ impl Board {
         );
 
         Board {
-            blocks,
+            path_blocks,
             towers: Vec::new(),
             monsters,
             base: Base { pos: (0.0, 8.0) }
@@ -386,7 +452,10 @@ impl EventHandler for MainState {
     fn update(&mut self, _: &mut ggez::Context) -> std::result::Result<(), ggez::GameError> {
         let elapsed = self.time.elapsed().as_millis() as f32 / 1000.0;
         for monster in self.board.monsters.iter_mut() {
-            monster.update(elapsed, &self.board.blocks);
+            monster.update(elapsed, &self.board.path_blocks);
+        }
+        for tower in self.board.towers.iter_mut() {
+            tower.update(elapsed, &mut self.board.monsters);
         }
         self.time = time::Instant::now();
         Ok(())
@@ -395,7 +464,7 @@ impl EventHandler for MainState {
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         graphics::clear(ctx, [0.1, 0.2, 0.3, 1.0].into());
 
-        for block in self.board.blocks.iter_mut() {
+        for block in self.board.path_blocks.iter_mut() {
             block.draw(ctx)?;
         }
 
@@ -439,9 +508,7 @@ impl EventHandler for MainState {
             if self.ui.gold >= 10 {
                 self.ui.gold -= 10;
                 self.board.towers.push(
-                    Tower {
-                        pos: ((x/BLOCK_SIZE).floor(), (y/BLOCK_SIZE).floor()),
-                    }
+                    Tower::new([(x/BLOCK_SIZE).floor(), (y/BLOCK_SIZE).floor()]),
                 )
             }
         }
