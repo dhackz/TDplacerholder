@@ -21,6 +21,11 @@ const GOLD_Y: f32 = 30.0;
 const HP_X: f32 = 30.0;
 const HP_Y: f32 = 50.0;
 
+pub struct Player {
+    health: f32,
+    gold: u32,
+}
+
 pub struct Block {
     pos: (f32, f32),
 }
@@ -203,6 +208,7 @@ pub struct Monster {
 
 impl Monster {
     const SIZE: f32 = 20.0;
+    const DAMAGE: f32 = 1.0;
 
     pub fn get_center_pos_abs(&self) -> [f32; 2] {
         [self.position[0] + Monster::SIZE/2.0, self.position[1] + Monster::SIZE/2.0]
@@ -267,7 +273,13 @@ impl Monster {
         }
     }
 
-    fn update(&mut self, elapsed: f32, path_blocks: &Vec<Block>) {
+    fn update(&mut self, elapsed: f32, path_blocks: &Vec<Block>, player: &mut Player) {
+        if self.state == MonsterState::Attacking {
+            // Die and deal damange to the player.
+            player.health -= Monster::DAMAGE;
+            self.state = MonsterState::Dead;
+        }
+
         // Don't do anything if dead.
         if self.state == MonsterState::Dead {
             return;
@@ -376,17 +388,15 @@ impl Board {
 }
 
 pub struct UI {
-    gold: u32,
-    hp: i32,
     build_bar: Vec<TowerIcon>,
     selected_tile: Option<(f32, f32)>,
 }
 
 impl UI {
-    pub fn draw(&mut self, ctx: &mut Context) -> GameResult {
+    pub fn draw(&mut self, ctx: &mut Context, player: &Player) -> GameResult {
         self.draw_background(ctx)?;
-        self.draw_gold(ctx)?;
-        self.draw_hp(ctx)?;
+        self.draw_gold(ctx, player)?;
+        self.draw_hp(ctx, player)?;
         // self.draw_tower_icons(ctx)?;
         self.draw_selected_tile(ctx)?;
         Ok(())
@@ -410,8 +420,8 @@ impl UI {
         Ok(())
     }
 
-    fn draw_gold(&mut self, ctx: &mut Context) -> GameResult {
-        let text = graphics::Text::new(format!("GOLD: {}", self.gold));
+    fn draw_gold(&mut self, ctx: &mut Context, player: &Player) -> GameResult {
+        let text = graphics::Text::new(format!("GOLD: {}", player.gold));
         let location_x = GOLD_X;
         let location_y = WINDOW_HEIGHT - UI_HEIGHT + GOLD_Y;
         let location = (
@@ -424,8 +434,8 @@ impl UI {
         Ok(())
     }
 
-    fn draw_hp(&mut self, ctx: &mut Context) -> GameResult {
-        let text = graphics::Text::new(format!("HP: {}", self.hp));
+    fn draw_hp(&mut self, ctx: &mut Context, player: &Player) -> GameResult {
+        let text = graphics::Text::new(format!("HP: {}", player.health));
         let location_x = HP_X;
         let location_y = WINDOW_HEIGHT - UI_HEIGHT + HP_Y;
         let location = (
@@ -460,6 +470,7 @@ impl UI {
 }
 
 pub struct MainState {
+    player: Player,
     ui: UI,
     board: Board,
     time: time::Instant,
@@ -468,9 +479,11 @@ pub struct MainState {
 impl MainState {
     fn new(ctx: &mut Context) -> MainState {
         MainState {
-            ui: UI {
+            player: Player {
+                health: 100.0,
                 gold: 100,
-                hp: 100,
+            },
+            ui: UI {
                 build_bar: Vec::new(),
                 selected_tile: None,
             },
@@ -485,7 +498,7 @@ impl EventHandler for MainState {
         let elapsed = self.time.elapsed().as_millis() as f32 / 1000.0;
 
         for monster in self.board.monsters.iter_mut() {
-            monster.update(elapsed, &self.board.path_blocks);
+            monster.update(elapsed, &self.board.path_blocks, &mut self.player);
         }
         self.board.monsters.retain(|x| x.state != MonsterState::Dead);
 
@@ -517,7 +530,7 @@ impl EventHandler for MainState {
         }
 
         self.board.base.draw(ctx)?;
-        self.ui.draw(ctx)?;
+        self.ui.draw(ctx, &self.player)?;
 
         graphics::present(ctx)?;
         Ok(())
@@ -545,8 +558,8 @@ impl EventHandler for MainState {
         y: f32,
     ) {
         if let Some(tile) = self.ui.selected_tile {
-            if self.ui.gold >= 10 {
-                self.ui.gold -= 10;
+            if self.player.gold >= 10 {
+                self.player.gold -= 10;
                 self.board.towers.push(
                     Tower::new([(x/BLOCK_SIZE).floor(), (y/BLOCK_SIZE).floor()]),
                 )
