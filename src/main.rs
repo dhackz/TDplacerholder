@@ -1,7 +1,4 @@
-use ggez::{
-    graphics, Context, GameResult,
-    event::{self, EventHandler},
-};
+use ggez::{Context, GameResult, audio::{self, SoundSource}, event::{self, EventHandler}, graphics};
 
 use std::path;
 use std::env;
@@ -20,6 +17,22 @@ const GOLD_Y: f32 = 30.0;
 
 const HP_X: f32 = 30.0;
 const HP_Y: f32 = 50.0;
+
+pub struct AssetManager {
+    tower_sprite: graphics::Image,
+    tower_attack_sound: audio::Source,
+    // monster_sprite: graphics::Image,
+    // monster_hurt_sound: graphics::Image,
+}
+
+impl AssetManager {
+    pub fn new(ctx: &mut Context) -> AssetManager {
+        AssetManager {
+            tower_sprite: graphics::Image::new(ctx, "/tower.png").unwrap(),
+            tower_attack_sound: audio::Source::new(ctx, "/tower_attack.ogg").unwrap(),
+        }
+    }
+}
 
 pub struct Player {
     health: f32,
@@ -81,7 +94,7 @@ struct Tower {
 
 impl Tower {
     const ATTACK_RANGE: f32 = 100.0;  // Pixels.
-    const ATTACK_TIMER: f32 = 1000.0; // Milliseconds.
+    const ATTACK_TIMER: f32 = 1.0; // Seconds.
     const DAMAGE: f32 = 10.0;
 
     pub fn new(position: [f32; 2]) -> Tower {
@@ -107,7 +120,12 @@ impl Tower {
         dx*dx + dy*dy < Tower::ATTACK_RANGE*Tower::ATTACK_RANGE
     }
 
-    pub fn update(&mut self, elapsed: f32, monsters: &mut Vec<Monster>) {
+    pub fn update(
+        &mut self,
+        elapsed: f32,
+        monsters: &mut Vec<Monster>,
+        asset_manager: &mut AssetManager
+    ) {
         self.attack_cooldown -= elapsed;
 
         if self.attack_cooldown < 0.0 {
@@ -123,18 +141,24 @@ impl Tower {
                 }
             }
             if damage_dealt {
+                asset_manager.tower_attack_sound.play().unwrap();
                 self.attack_cooldown = Tower::ATTACK_TIMER;
             }
         }
     }
 
-    pub fn draw(&mut self, ctx: &mut Context, monsters: &Vec<Monster>) -> GameResult {
-        let rectangle = graphics::Mesh::new_rectangle(
-            ctx,
-            graphics::DrawMode::fill(),
-            [0.0, 0.0, BLOCK_SIZE, BLOCK_SIZE].into(),
-            ggez::graphics::Color::new(1.0, 1.0, 1.0, 1.0),
-        )?;
+    pub fn draw(
+        &mut self,
+        ctx: &mut Context,
+        monsters: &Vec<Monster>,
+        asset_manager: &AssetManager
+    ) -> GameResult {
+        // let rectangle = graphics::Mesh::new_rectangle(
+        //     ctx,
+        //     graphics::DrawMode::fill(),
+        //     [0.0, 0.0, BLOCK_SIZE, BLOCK_SIZE].into(),
+        //     ggez::graphics::Color::new(1.0, 1.0, 1.0, 1.0),
+        // )?;
 
         let location = (
             ggez::mint::Point2 {
@@ -143,9 +167,7 @@ impl Tower {
             },
         );
 
-        let center = self.get_center_pos_abs();
-
-        graphics::draw(ctx, &rectangle, location)?;
+        graphics::draw(ctx, &asset_manager.tower_sprite, location)?;
 
         Ok(())
     }
@@ -198,6 +220,7 @@ pub enum MonsterState // TODO: put in namespace.
     Attacking,
     Dead,
 }
+
 pub struct Monster {
     position: [f32; 2],
     speed: f32,
@@ -371,7 +394,7 @@ impl Board {
         monsters.push(
             Monster {
                 health: 100.0,
-                speed: 100.0,
+                speed: 0.0,
                 position: [0.0, 0.0],
                 move_goal: 0,
                 state: MonsterState::Walking,
@@ -470,6 +493,7 @@ impl UI {
 }
 
 pub struct MainState {
+    asset_manager: AssetManager,
     player: Player,
     ui: UI,
     board: Board,
@@ -479,6 +503,7 @@ pub struct MainState {
 impl MainState {
     fn new(ctx: &mut Context) -> MainState {
         MainState {
+            asset_manager: AssetManager::new(ctx),
             player: Player {
                 health: 100.0,
                 gold: 100,
@@ -503,7 +528,7 @@ impl EventHandler for MainState {
         self.board.monsters.retain(|x| x.state != MonsterState::Dead);
 
         for tower in self.board.towers.iter_mut() {
-            tower.update(elapsed, &mut self.board.monsters);
+            tower.update(elapsed, &mut self.board.monsters, &mut self.asset_manager);
         }
         self.time = time::Instant::now();
         Ok(())
@@ -521,7 +546,7 @@ impl EventHandler for MainState {
         }
 
         for tower in self.board.towers.iter_mut() {
-            tower.draw(ctx, &self.board.monsters)?;
+            tower.draw(ctx, &self.board.monsters, &self.asset_manager)?;
         }
 
         // Draw tower attacks.
@@ -536,7 +561,14 @@ impl EventHandler for MainState {
         Ok(())
     }
 
-    fn mouse_motion_event(&mut self, _ctx: &mut Context, x: f32, y: f32, _dx: f32, _dy: f32) {
+    fn mouse_motion_event(
+        &mut self,
+        _ctx: &mut Context,
+        x: f32,
+        y: f32,
+        _dx: f32,
+        _dy: f32,
+    ) {
         // Check inside game window.
         if x > 0.0 && x < WINDOW_WIDTH &&
             y > 0.0 && y < WINDOW_HEIGHT - UI_HEIGHT {
