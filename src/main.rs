@@ -18,18 +18,50 @@ const GOLD_Y: f32 = 30.0;
 const HP_X: f32 = 30.0;
 const HP_Y: f32 = 50.0;
 
+pub struct MonsterSpawner {
+    spawn_schedule: Vec<f32>,
+    elapsed_time: f32,
+}
+
+impl MonsterSpawner {
+    pub fn new() -> MonsterSpawner {
+        let spawn_schedule = vec![ 0.0, 1.0, 2.0, 3.0, 4.0, ];
+        MonsterSpawner { spawn_schedule, elapsed_time: 0.0 }
+    }
+
+    pub fn update(&mut self, elapsed: f32, board: &mut Board) {
+        self.elapsed_time += elapsed;
+
+        for i in 0..self.spawn_schedule.len() {
+            if self.spawn_schedule[i] < self.elapsed_time {
+                board.monsters.push(
+                    Monster::new_basic_monster()
+                );
+                if i == self.spawn_schedule.len()-1 {
+                    self.spawn_schedule = vec![];
+                }
+            } else {
+                self.spawn_schedule = self.spawn_schedule.split_off(i);
+                break; // Schedule is cronological, no reason to check further.
+            }
+        }
+
+    }
+}
+
 pub struct AssetManager {
     tower_sprite: graphics::Image,
     tower_attack_sound: audio::Source,
-    // monster_sprite: graphics::Image,
+    monster_sprite: graphics::Image,
     // monster_hurt_sound: graphics::Image,
 }
 
 impl AssetManager {
     pub fn new(ctx: &mut Context) -> AssetManager {
         AssetManager {
-            tower_sprite: graphics::Image::new(ctx, "/tower.png").unwrap(),
+            tower_sprite: graphics::Image::new(ctx, "/tower2.png").unwrap(),
             tower_attack_sound: audio::Source::new(ctx, "/tower_attack.ogg").unwrap(),
+            monster_sprite: graphics::Image::new(ctx, "/monster1.png").unwrap(),
         }
     }
 }
@@ -153,17 +185,10 @@ impl Tower {
         monsters: &Vec<Monster>,
         asset_manager: &AssetManager
     ) -> GameResult {
-        // let rectangle = graphics::Mesh::new_rectangle(
-        //     ctx,
-        //     graphics::DrawMode::fill(),
-        //     [0.0, 0.0, BLOCK_SIZE, BLOCK_SIZE].into(),
-        //     ggez::graphics::Color::new(1.0, 1.0, 1.0, 1.0),
-        // )?;
-
         let location = (
             ggez::mint::Point2 {
-                x: self.position[0] * BLOCK_SIZE,
-                y: self.position[1] * BLOCK_SIZE,
+                x: self.position[0] * BLOCK_SIZE - 5.0,
+                y: self.position[1] * BLOCK_SIZE - 35.0,
             },
         );
 
@@ -232,6 +257,16 @@ pub struct Monster {
 impl Monster {
     const SIZE: f32 = 20.0;
     const DAMAGE: f32 = 1.0;
+
+    pub fn new_basic_monster() -> Monster {
+        Monster {
+            health: 100.0,
+            speed: 100.0,
+            position: [0.0, 0.0],
+            move_goal: 0,
+            state: MonsterState::Walking,
+        }
+    }
 
     pub fn get_center_pos_abs(&self) -> [f32; 2] {
         [self.position[0] + Monster::SIZE/2.0, self.position[1] + Monster::SIZE/2.0]
@@ -311,21 +346,20 @@ impl Monster {
         self.try_moving(elapsed, path_blocks);
     }
 
-    fn draw(&mut self, ctx: &mut Context) -> GameResult {
-        let rectangle = graphics::Mesh::new_rectangle(
-            ctx,
-            graphics::DrawMode::fill(),
-            [0.0, 0.0, Monster::SIZE, Monster::SIZE].into(),
-            ggez::graphics::Color::new(0.8, 0.0, 0.0, 1.0),
-        )?;
-
+    pub fn draw(
+        &mut self,
+        ctx: &mut Context,
+        asset_manager: &AssetManager
+    ) -> GameResult {
         let location = (
             ggez::mint::Point2 {
                 x: self.position[0],
-                y: self.position[1],
+                y: self.position[1] - 10.0,
             },
         );
-        graphics::draw(ctx, &rectangle, location)?;
+
+        graphics::draw(ctx, &asset_manager.monster_sprite, location)?;
+
         Ok(())
     }
 }
@@ -390,21 +424,10 @@ impl Board {
         path_blocks.push( Block { pos: (3.0, 9.0) } );
         path_blocks.push( Block { pos: (2.0, 9.0) } );
 
-        let mut monsters = Vec::new();
-        monsters.push(
-            Monster {
-                health: 100.0,
-                speed: 0.0,
-                position: [0.0, 0.0],
-                move_goal: 0,
-                state: MonsterState::Walking,
-            }
-        );
-
         Board {
             path_blocks,
             towers: Vec::new(),
-            monsters,
+            monsters: Vec::new(),
             base: Base { pos: (0.0, 8.0) }
         }
     }
@@ -495,6 +518,7 @@ impl UI {
 pub struct MainState {
     asset_manager: AssetManager,
     player: Player,
+    monster_spawner: MonsterSpawner,
     ui: UI,
     board: Board,
     time: time::Instant,
@@ -508,6 +532,7 @@ impl MainState {
                 health: 100.0,
                 gold: 100,
             },
+            monster_spawner: MonsterSpawner::new(),
             ui: UI {
                 build_bar: Vec::new(),
                 selected_tile: None,
@@ -521,6 +546,8 @@ impl MainState {
 impl EventHandler for MainState {
     fn update(&mut self, _: &mut ggez::Context) -> std::result::Result<(), ggez::GameError> {
         let elapsed = self.time.elapsed().as_millis() as f32 / 1000.0;
+
+        self.monster_spawner.update(elapsed, &mut self.board);
 
         for monster in self.board.monsters.iter_mut() {
             monster.update(elapsed, &self.board.path_blocks, &mut self.player);
@@ -542,7 +569,7 @@ impl EventHandler for MainState {
         }
 
         for monster in self.board.monsters.iter_mut() {
-            monster.draw(ctx)?;
+            monster.draw(ctx, &self.asset_manager)?;
         }
 
         for tower in self.board.towers.iter_mut() {
