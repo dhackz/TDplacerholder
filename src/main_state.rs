@@ -4,7 +4,7 @@ use crate::{
     player::Player,
     ui::{ UI, WINDOW_HEIGHT, WINDOW_WIDTH, UI_HEIGHT, },
     monster::MonsterState,
-    tower::Tower,
+    tower::*,
     monster_spawner::MonsterSpawner,
     board::Board,
 };
@@ -125,7 +125,7 @@ impl EventHandler for MainState {
         if let Some(tile) = self.ui.selected_tile {
             if self.player.gold >= 10 {
                 self.player.gold -= 10;
-                self.board.towers.push(Tower::new([
+                self.board.towers.push(NinjaTower::new([
                     (x / BLOCK_SIZE).floor(),
                     (y / BLOCK_SIZE).floor(),
                 ]))
