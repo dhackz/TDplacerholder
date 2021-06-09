@@ -16,7 +16,7 @@ impl Block {
             ctx,
             graphics::DrawMode::fill(),
             [0.0, 0.0, BLOCK_SIZE, BLOCK_SIZE].into(),
-            ggez::graphics::Color::new(1.0, 1.0, 0.0, 1.0),
+            ggez::graphics::Color::new(0.1, 0.4, 0.0, 1.0),
         )?;
 
         let location = (ggez::mint::Point2 {

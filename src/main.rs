@@ -20,7 +20,7 @@ mod tower;
 mod monster_spawner;
 mod board;
 mod main_state;
-
+mod gold;
 
 fn main() -> GameResult {
     let resource_dir = if let Ok(manifest_file) = env::var("CARGO_MANIFEST_DIR") {

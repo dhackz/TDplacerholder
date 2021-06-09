@@ -48,14 +48,24 @@ impl EventHandler for MainState {
         self.monster_spawner.update(elapsed, &mut self.board);
 
         for monster in self.board.monsters.iter_mut() {
-            monster.update(elapsed, &self.board.path_blocks, &mut self.player);
+            monster.update(
+                elapsed,
+                &self.board.path_blocks,
+                &mut self.player,
+            );
         }
+
         self.board
             .monsters
             .retain(|x| x.state != MonsterState::Dead);
 
         for tower in self.board.towers.iter_mut() {
-            tower.update(elapsed, &mut self.board.monsters, &mut self.asset_manager);
+            tower.update(
+                elapsed,
+                &mut self.board.monsters,
+                &mut self.asset_manager,
+                &mut self.board.gold_piles,
+            );
         }
         self.time = time::Instant::now();
         Ok(())
@@ -81,7 +91,11 @@ impl EventHandler for MainState {
             tower.draw_attacks(ctx, &self.board.monsters)?;
         }
 
-        self.board.base.draw(ctx)?;
+        for gold_pile in self.board.gold_piles.iter_mut() {
+            gold_pile.draw(ctx, &self.asset_manager)?;
+        }
+
+        self.board.base.draw(ctx, &self.asset_manager)?;
         self.ui.draw(ctx, &self.player)?;
 
         graphics::present(ctx)?;

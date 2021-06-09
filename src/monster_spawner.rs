@@ -10,7 +10,7 @@ pub struct MonsterSpawner {
 
 impl MonsterSpawner {
     pub fn new() -> MonsterSpawner {
-        let spawn_schedule = vec![0.0, 1.0, 2.0, 3.0, 4.0];
+        let spawn_schedule = vec![0.0, 3.0, 5.0, 7.0, 8.0, 8.5, 8.6, 8.7, 8.8];
         MonsterSpawner {
             spawn_schedule,
             elapsed_time: 0.0,

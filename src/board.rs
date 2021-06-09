@@ -3,12 +3,14 @@ use crate::{
     tower::Tower,
     monster::Monster,
     base::Base,
+    gold::GoldPile,
 };
 
 pub struct Board {
     pub path_blocks: Vec<Block>,
     pub towers: Vec<Tower>,
     pub monsters: Vec<Monster>,
+    pub gold_piles: Vec<GoldPile>,
     pub base: Base,
 }
 
@@ -69,7 +71,8 @@ impl Board {
             path_blocks,
             towers: Vec::new(),
             monsters: Vec::new(),
-            base: Base { pos: (0.0, 8.0) },
+            gold_piles: Vec::new(),
+            base: Base { pos: [0.0, 8.0] },
         }
     }
 }

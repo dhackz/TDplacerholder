@@ -2,6 +2,7 @@ use crate::{
     block::BLOCK_SIZE,
     asset_manager::AssetManager,
     monster::Monster,
+    gold::GoldPile,
 };
 
 use ggez::{
@@ -49,6 +50,7 @@ impl Tower {
         elapsed: f32,
         monsters: &mut Vec<Monster>,
         asset_manager: &mut AssetManager,
+        gold_piles: &mut Vec<GoldPile>,
     ) {
         self.attack_cooldown -= elapsed;
 
@@ -61,7 +63,7 @@ impl Tower {
             for monster in monsters.iter_mut() {
                 if self.position_is_in_attack_range(monster.get_center_pos_abs()) {
                     damage_dealt = true;
-                    monster.recieve_damage(Tower::DAMAGE);
+                    monster.recieve_damage(Tower::DAMAGE, gold_piles);
                 }
             }
             if damage_dealt {

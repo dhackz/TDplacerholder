@@ -3,6 +3,7 @@ use crate::{
     BLOCK_SIZE,
     Player,
     asset_manager::AssetManager,
+    gold::GoldPile,
 };
 
 use ggez::{
@@ -49,11 +50,22 @@ impl Monster {
         ]
     }
 
-    pub fn recieve_damage(&mut self, damage: f32) {
+    pub fn recieve_damage(&mut self, damage: f32, gold_piles: &mut Vec<GoldPile>) {
+        if self.state == MonsterState::Dead {
+            // Already dead do nothing.
+            return;
+        }
+
         self.health -= damage;
 
         if self.health <= 0.0 {
             self.state = MonsterState::Dead;
+            gold_piles.push(
+                GoldPile {
+                    position: self.position,
+                    value: 10,
+                }
+            );
         }
     }
 
@@ -110,7 +122,12 @@ impl Monster {
         }
     }
 
-    pub fn update(&mut self, elapsed: f32, path_blocks: &Vec<Block>, player: &mut Player) {
+    pub fn update(
+        &mut self,
+        elapsed: f32,
+        path_blocks: &Vec<Block>,
+        player: &mut Player,
+    ) {
         if self.state == MonsterState::Attacking {
             // Die and deal damange to the player.
             player.health -= Monster::DAMAGE;
