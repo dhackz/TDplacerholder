@@ -16,7 +16,6 @@ use rand::*;
 
 #[derive(Eq, Ord, PartialEq, PartialOrd, Debug)]
 pub enum MonsterState
-// TODO: put in namespace.
 {
     Walking,
     Attacking,

@@ -216,7 +216,7 @@ impl NinjaTower {
             y: self.position[1] * BLOCK_SIZE - 35.0,
         },);
 
-        graphics::draw(ctx, &asset_manager.tower_sprite, location)?;
+        graphics::draw(ctx, &asset_manager.tower_ninja_sprite, location)?;
 
         Ok(())
     }
