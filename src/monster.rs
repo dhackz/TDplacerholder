@@ -12,6 +12,8 @@ use ggez::{
     Context,
 };
 
+use rand::*;
+
 #[derive(Eq, Ord, PartialEq, PartialOrd, Debug)]
 pub enum MonsterState
 // TODO: put in namespace.
@@ -60,9 +62,18 @@ impl Monster {
 
         if self.health <= 0.0 {
             self.state = MonsterState::Dead;
+
+            let offset = 10.0;
+            let mut rng = rand::thread_rng();
+
+            let gold_position = [
+                self.position[0] + (rng.gen::<f32>() * offset - offset*2.0),
+                self.position[1] + (rng.gen::<f32>() * offset - offset*2.0),
+            ];
+
             gold_piles.push(
                 GoldPile {
-                    position: self.position,
+                    position: gold_position,
                     value: 10,
                 }
             );
