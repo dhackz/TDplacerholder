@@ -2,14 +2,21 @@ use crate::{
     block::BLOCK_SIZE,
     asset_manager::AssetManager,
     player::Player,
-    ui::{ UI, WINDOW_HEIGHT, WINDOW_WIDTH, UI_HEIGHT, },
+    ui::*,
     monster::MonsterState,
-    tower::*,
+    towers::tower::*,
+    towers::ninja_tower::*,
     monster_spawner::MonsterSpawner,
     board::Board,
+    drawable::*,
 };
 
-use ggez::{Context, GameResult, event::{self, EventHandler}, graphics};
+use ggez::{
+    Context,
+    GameResult,
+    event::{self, EventHandler, KeyCode, KeyMods},
+    graphics
+};
 
 use std::time;
 
@@ -33,7 +40,8 @@ impl MainState {
             monster_spawner: MonsterSpawner::new(),
             ui: UI {
                 build_bar: Vec::new(),
-                selected_tile: None,
+                selected_tile_location: None,
+                selected_tile_type: TowerType::Basic,
             },
             board: Board::generate(1, 2),
             time: time::Instant::now(),
@@ -63,8 +71,8 @@ impl EventHandler for MainState {
             tower.update(
                 elapsed,
                 &mut self.board.monsters,
-                &mut self.asset_manager,
                 &mut self.board.gold_piles,
+                &mut self.asset_manager,
             );
         }
         self.time = time::Instant::now();
@@ -83,13 +91,13 @@ impl EventHandler for MainState {
         }
 
         for tower in self.board.towers.iter_mut() {
-            tower.draw(ctx, &self.board.monsters, &self.asset_manager)?;
+            tower.draw(ctx, &self.asset_manager)?;
         }
 
         // Draw tower attacks.
-        for tower in self.board.towers.iter_mut() {
-            tower.draw_attacks(ctx, &self.board.monsters)?;
-        }
+        // for tower in self.board.towers.iter_mut() {
+        //     tower.draw_attacks(ctx, &self.board.monsters)?;
+        // }
 
         for gold_pile in self.board.gold_piles.iter_mut() {
             gold_pile.draw(ctx, &self.asset_manager)?;
@@ -109,9 +117,9 @@ impl EventHandler for MainState {
             let yd = (y / BLOCK_SIZE).floor() * BLOCK_SIZE;
 
             // Change selected_tile.
-            self.ui.selected_tile = Some((xd, yd));
+            self.ui.selected_tile_location = Some((xd, yd));
         } else {
-            self.ui.selected_tile = None;
+            self.ui.selected_tile_location = None;
         }
     }
 
@@ -122,14 +130,39 @@ impl EventHandler for MainState {
         x: f32,
         y: f32,
     ) {
-        if let Some(tile) = self.ui.selected_tile {
+        if let Some(_) = self.ui.selected_tile_location {
             if self.player.gold >= 10 {
                 self.player.gold -= 10;
-                self.board.towers.push(NinjaTower::new([
-                    (x / BLOCK_SIZE).floor(),
-                    (y / BLOCK_SIZE).floor(),
-                ]))
+                if self.ui.selected_tile_type == TowerType::Basic {
+                    self.board.towers.push(
+                        Box::new(BasicTower::new([
+                            (x / BLOCK_SIZE).floor(),
+                            (y / BLOCK_SIZE).floor(),
+                        ]))
+                    );
+                } else if self.ui.selected_tile_type == TowerType::Ninja {
+                    self.board.towers.push(
+                        Box::new(NinjaTower::new([
+                            (x / BLOCK_SIZE).floor(),
+                            (y / BLOCK_SIZE).floor(),
+                        ]))
+                    );
+                }
             }
+        }
+    }
+
+    fn key_down_event(
+        &mut self,
+        _ctx: &mut Context,
+        keycode: KeyCode,
+        _keymods: KeyMods,
+        _repeat: bool
+    ) {
+        if keycode == KeyCode::Key1 {
+            self.ui.selected_tile_type = TowerType::Basic;
+        } else if keycode == KeyCode::Key2 {
+            self.ui.selected_tile_type = TowerType::Ninja;
         }
     }
 }

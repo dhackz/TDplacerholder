@@ -1,6 +1,6 @@
 use crate::{
     block::Block,
-    tower::*,
+    drawable::*,
     monster::Monster,
     base::Base,
     gold::GoldPile,
@@ -8,7 +8,7 @@ use crate::{
 
 pub struct Board {
     pub path_blocks: Vec<Block>,
-    pub towers: Vec<NinjaTower>,
+    pub towers: Vec<Box<dyn Tower>>,
     pub monsters: Vec<Monster>,
     pub gold_piles: Vec<GoldPile>,
     pub base: Base,

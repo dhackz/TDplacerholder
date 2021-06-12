@@ -18,9 +18,16 @@ const HP_Y: f32 = 50.0;
 
 pub struct TowerIcon {}
 
+#[derive(Debug, Eq, PartialEq)]
+pub enum TowerType {
+    Basic,
+    Ninja,
+}
+
 pub struct UI {
     pub build_bar: Vec<TowerIcon>,
-    pub selected_tile: Option<(f32, f32)>,
+    pub selected_tile_location: Option<(f32, f32)>,
+    pub selected_tile_type: TowerType,
 }
 
 impl UI {
@@ -74,7 +81,7 @@ impl UI {
     }
 
     fn draw_selected_tile(&mut self, ctx: &mut Context) -> GameResult {
-        if let Some(tile) = self.selected_tile {
+        if let Some(tile) = self.selected_tile_location {
             let rectangle = graphics::Mesh::new_rectangle(
                 ctx,
                 graphics::DrawMode::stroke(3.0),
