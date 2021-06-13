@@ -1,6 +1,6 @@
 use crate::{asset_manager::AssetManager, gold::GoldPile, Block, Player, BLOCK_SIZE};
 
-use ggez::{graphics, Context, GameResult};
+use ggez::{audio::SoundSource, graphics, Context, GameResult};
 
 use rand::*;
 
@@ -40,7 +40,12 @@ impl Monster {
         ]
     }
 
-    pub fn recieve_damage(&mut self, damage: f32, gold_piles: &mut Vec<GoldPile>) {
+    pub fn recieve_damage(
+        &mut self,
+        damage: f32,
+        gold_piles: &mut Vec<GoldPile>,
+        asset_manager: &mut AssetManager,
+    ) {
         if self.state == MonsterState::Dead {
             // Already dead do nothing.
             return;
@@ -49,6 +54,7 @@ impl Monster {
         self.health -= damage;
 
         if self.health <= 0.0 {
+            asset_manager.monster_hurt_sound.play().unwrap();
             self.state = MonsterState::Dead;
 
             let offset = 10.0;

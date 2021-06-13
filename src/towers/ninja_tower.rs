@@ -112,7 +112,7 @@ impl Tower for NinjaTower {
             for monster in monsters.iter_mut() {
                 if self.position_is_in_attack_range(monster.get_center_pos_abs()) {
                     damage_dealt = true;
-                    monster.recieve_damage(NinjaTower::DAMAGE, gold_piles);
+                    monster.recieve_damage(NinjaTower::DAMAGE, gold_piles, asset_manager);
                 }
             }
             if damage_dealt {
@@ -126,7 +126,11 @@ impl Tower for NinjaTower {
                 //let mut rng = rand::thread_rng();
                 //let choice = monsters.choose(&mut rng).unwrap();
                 //monsters[rand::thread_rng().gen_range(0..monsters.len())]
-                monsters[num].recieve_damage(NinjaTower::STRONG_ATTACK_DAMAGE, gold_piles);
+                monsters[num].recieve_damage(
+                    NinjaTower::STRONG_ATTACK_DAMAGE,
+                    gold_piles,
+                    asset_manager,
+                );
                 asset_manager
                     .ninja_tower_strong_attack_sound
                     .play()

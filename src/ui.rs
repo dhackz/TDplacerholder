@@ -1,6 +1,8 @@
+use crate::asset_manager::AssetManager;
+use crate::gold::GoldPile;
 use crate::{Player, BLOCK_SIZE};
 
-use ggez::{graphics, Context, GameResult};
+use ggez::{audio::SoundSource, graphics, Context, GameResult};
 
 pub const WINDOW_HEIGHT: f32 = 600.0;
 pub const WINDOW_WIDTH: f32 = 800.0;
@@ -22,7 +24,7 @@ pub enum TowerType {
 
 pub struct UI {
     pub build_bar: Vec<TowerIcon>,
-    pub selected_tile_location: Option<(f32, f32)>,
+    pub selected_tile_location: Option<[f32; 2]>,
     pub selected_tile_type: TowerType,
 }
 
@@ -86,11 +88,45 @@ impl UI {
             )?;
 
             let location = (ggez::mint::Point2 {
-                x: tile.0,
-                y: tile.1,
+                x: tile[0],
+                y: tile[1],
             },);
             graphics::draw(ctx, &rectangle, location)?;
         }
         Ok(())
+    }
+
+    pub fn mouse_motion_event(
+        &mut self,
+        x: f32,
+        y: f32,
+        gold_piles: &mut Vec<GoldPile>,
+        player: &mut Player,
+        asset_manager: &mut AssetManager,
+    ) {
+        // Check inside game window.
+        if x > 0.0 && x < WINDOW_WIDTH && y > 0.0 && y < WINDOW_HEIGHT - UI_HEIGHT {
+            // Change selected_tile.
+            self.selected_tile_location = Some([
+                (x / BLOCK_SIZE).floor() * BLOCK_SIZE,
+                (y / BLOCK_SIZE).floor() * BLOCK_SIZE,
+            ]);
+
+            // Check for any gold to pick up.
+            gold_piles.retain(|gold_pile| {
+                let xd = x - (gold_pile.position[0] + 35.0 / 2.0);
+                let yd = y - (gold_pile.position[1] + 35.0 / 2.0);
+                // Within 20px radius.
+                if xd * xd + yd * yd < 20.0 * 20.0 {
+                    player.gold += gold_pile.value;
+                    asset_manager.gold_sound.play().unwrap();
+                    false
+                } else {
+                    true
+                }
+            });
+        } else {
+            self.selected_tile_location = None;
+        }
     }
 }

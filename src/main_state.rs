@@ -103,16 +103,13 @@ impl EventHandler for MainState {
     }
 
     fn mouse_motion_event(&mut self, _ctx: &mut Context, x: f32, y: f32, _dx: f32, _dy: f32) {
-        // Check inside game window.
-        if x > 0.0 && x < WINDOW_WIDTH && y > 0.0 && y < WINDOW_HEIGHT - UI_HEIGHT {
-            let xd = (x / BLOCK_SIZE).floor() * BLOCK_SIZE;
-            let yd = (y / BLOCK_SIZE).floor() * BLOCK_SIZE;
-
-            // Change selected_tile.
-            self.ui.selected_tile_location = Some((xd, yd));
-        } else {
-            self.ui.selected_tile_location = None;
-        }
+        self.ui.mouse_motion_event(
+            x,
+            y,
+            &mut self.board.gold_piles,
+            &mut self.player,
+            &mut self.asset_manager,
+        );
     }
 
     fn mouse_button_down_event(

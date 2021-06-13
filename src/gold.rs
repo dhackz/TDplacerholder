@@ -4,7 +4,7 @@ use ggez::{graphics, Context, GameResult};
 
 pub struct GoldPile {
     pub position: [f32; 2],
-    pub value: i32,
+    pub value: u32,
 }
 
 impl GoldPile {

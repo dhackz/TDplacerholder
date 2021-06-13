@@ -102,7 +102,7 @@ impl Tower for BasicTower {
             for monster in monsters.iter_mut() {
                 if self.position_is_in_attack_range(monster.get_center_pos_abs()) {
                     damage_dealt = true;
-                    monster.recieve_damage(BasicTower::DAMAGE, gold_piles);
+                    monster.recieve_damage(BasicTower::DAMAGE, gold_piles, asset_manager);
                 }
             }
             if damage_dealt {
