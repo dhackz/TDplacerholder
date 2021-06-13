@@ -3,28 +3,22 @@ use crate::{
     towers::tower::Tower,
 };
 
-use rand::Rng;
-
 use ggez::{audio::SoundSource, graphics, Context, GameResult};
 
-pub struct NinjaTower {
+pub struct BasicTower {
     pub position: [f32; 2],
     pub attack_cooldown: f32,
-    pub strong_attack_cooldown: f32,
 }
 
-impl NinjaTower {
+impl BasicTower {
     pub const ATTACK_RANGE: f32 = 100.0; // Pixels.
-    pub const ATTACK_TIMER: f32 = 2.0; // Seconds.
-    pub const STRONG_ATTACK_TIMER: f32 = 10.0; // Seconds.
+    pub const ATTACK_TIMER: f32 = 1.0; // Seconds.
     pub const DAMAGE: f32 = 10.0;
-    pub const STRONG_ATTACK_DAMAGE: f32 = 1000.0;
 
-    pub fn new(position: [f32; 2]) -> NinjaTower {
-        NinjaTower {
+    pub fn new(position: [f32; 2]) -> BasicTower {
+        BasicTower {
             position,
-            attack_cooldown: 2.0,
-            strong_attack_cooldown: 5.0,
+            attack_cooldown: 0.0,
         }
     }
 
@@ -41,7 +35,7 @@ impl NinjaTower {
         let dx = tower_center_pos_abs[0] - position_abs[0];
         let dy = tower_center_pos_abs[1] - position_abs[1];
 
-        dx * dx + dy * dy < NinjaTower::ATTACK_RANGE * NinjaTower::ATTACK_RANGE
+        dx * dx + dy * dy < BasicTower::ATTACK_RANGE * BasicTower::ATTACK_RANGE
     }
 
     fn draw_attack(
@@ -64,14 +58,14 @@ impl NinjaTower {
     }
 }
 
-impl Tower for NinjaTower {
+impl Tower for BasicTower {
     fn draw(&mut self, ctx: &mut Context, asset_manager: &AssetManager) -> GameResult {
         let location = (ggez::mint::Point2 {
             x: self.position[0] * BLOCK_SIZE - 5.0,
             y: self.position[1] * BLOCK_SIZE - 35.0,
         },);
 
-        graphics::draw(ctx, &asset_manager.tower_ninja_sprite, location)?;
+        graphics::draw(ctx, &asset_manager.tower_sprite, location)?;
 
         Ok(())
     }
@@ -98,13 +92,9 @@ impl Tower for NinjaTower {
         asset_manager: &mut AssetManager,
     ) {
         self.attack_cooldown -= elapsed;
-        self.strong_attack_cooldown -= elapsed;
 
         if self.attack_cooldown < 0.0 {
             self.attack_cooldown = 0.0;
-        }
-        if self.strong_attack_cooldown < 0.0 {
-            self.strong_attack_cooldown = 0.0;
         }
 
         if self.attack_cooldown == 0.0 {
@@ -112,26 +102,12 @@ impl Tower for NinjaTower {
             for monster in monsters.iter_mut() {
                 if self.position_is_in_attack_range(monster.get_center_pos_abs()) {
                     damage_dealt = true;
-                    monster.recieve_damage(NinjaTower::DAMAGE, gold_piles);
+                    monster.recieve_damage(BasicTower::DAMAGE, gold_piles);
                 }
             }
             if damage_dealt {
                 asset_manager.tower_attack_sound.play().unwrap();
-                self.attack_cooldown = NinjaTower::ATTACK_TIMER;
-            }
-        }
-        if self.strong_attack_cooldown == 0.0 {
-            if monsters.len() > 0 {
-                let num = rand::thread_rng().gen_range(0..monsters.len());
-                //let mut rng = rand::thread_rng();
-                //let choice = monsters.choose(&mut rng).unwrap();
-                //monsters[rand::thread_rng().gen_range(0..monsters.len())]
-                monsters[num].recieve_damage(NinjaTower::STRONG_ATTACK_DAMAGE, gold_piles);
-                asset_manager
-                    .ninja_tower_strong_attack_sound
-                    .play()
-                    .unwrap();
-                self.strong_attack_cooldown = NinjaTower::STRONG_ATTACK_TIMER;
+                self.attack_cooldown = BasicTower::ATTACK_TIMER;
             }
         }
     }

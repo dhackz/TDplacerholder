@@ -1,10 +1,6 @@
-use crate::{ Player, BLOCK_SIZE, };
+use crate::{Player, BLOCK_SIZE};
 
-use ggez::{
-    graphics,
-    Context,
-    GameResult,
-};
+use ggez::{graphics, Context, GameResult};
 
 pub const WINDOW_HEIGHT: f32 = 600.0;
 pub const WINDOW_WIDTH: f32 = 800.0;

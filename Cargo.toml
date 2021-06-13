@@ -1,5 +1,5 @@
 [package]
-name = "TDplaceholder"
+name = "td_placeholder"
 version = "0.1.0"
 authors = ["dawidstrom <dawid.strom@gmail.com>"]
 edition = "2018"

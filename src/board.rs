@@ -1,10 +1,4 @@
-use crate::{
-    block::Block,
-    drawable::*,
-    monster::Monster,
-    base::Base,
-    gold::GoldPile,
-};
+use crate::{base::Base, block::Block, gold::GoldPile, monster::Monster, towers::tower::Tower};
 
 pub struct Board {
     pub path_blocks: Vec<Block>,
@@ -15,7 +9,7 @@ pub struct Board {
 }
 
 impl Board {
-    pub fn generate(seed: u64, length: u32) -> Board {
+    pub fn generate(_seed: u64, _length: u32) -> Board {
         let mut path_blocks = Vec::new();
         path_blocks.push(Block { pos: (0.0, 0.0) });
         path_blocks.push(Block { pos: (0.0, 1.0) });

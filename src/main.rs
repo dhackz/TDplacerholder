@@ -1,11 +1,11 @@
 use crate::{
-    block::{ Block,  BLOCK_SIZE, },
-    player::Player,
+    block::{Block, BLOCK_SIZE},
     board::Board,
     main_state::MainState,
+    player::Player,
 };
 
-use ggez::{ GameResult, event, };
+use ggez::{event, GameResult};
 
 use std::env;
 use std::path;
@@ -13,15 +13,14 @@ use std::path;
 mod asset_manager;
 mod base;
 mod block;
-mod player;
-mod ui;
-mod monster;
-mod towers;
-mod monster_spawner;
 mod board;
-mod main_state;
 mod gold;
-mod drawable;
+mod main_state;
+mod monster;
+mod monster_spawner;
+mod player;
+mod towers;
+mod ui;
 
 fn main() -> GameResult {
     let resource_dir = if let Ok(manifest_file) = env::var("CARGO_MANIFEST_DIR") {

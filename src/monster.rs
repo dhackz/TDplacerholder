@@ -1,22 +1,11 @@
-use crate::{
-    Block,
-    BLOCK_SIZE,
-    Player,
-    asset_manager::AssetManager,
-    gold::GoldPile,
-};
+use crate::{asset_manager::AssetManager, gold::GoldPile, Block, Player, BLOCK_SIZE};
 
-use ggez::{
-    graphics,
-    GameResult,
-    Context,
-};
+use ggez::{graphics, Context, GameResult};
 
 use rand::*;
 
 #[derive(Eq, Ord, PartialEq, PartialOrd, Debug)]
-pub enum MonsterState
-{
+pub enum MonsterState {
     Walking,
     Attacking,
     Dead,
@@ -66,16 +55,14 @@ impl Monster {
             let mut rng = rand::thread_rng();
 
             let gold_position = [
-                self.position[0] + (rng.gen::<f32>() * offset - offset*2.0),
-                self.position[1] + (rng.gen::<f32>() * offset - offset*2.0),
+                self.position[0] + (rng.gen::<f32>() * offset - offset * 2.0),
+                self.position[1] + (rng.gen::<f32>() * offset - offset * 2.0),
             ];
 
-            gold_piles.push(
-                GoldPile {
-                    position: gold_position,
-                    value: 10,
-                }
-            );
+            gold_piles.push(GoldPile {
+                position: gold_position,
+                value: 10,
+            });
         }
     }
 
@@ -132,12 +119,7 @@ impl Monster {
         }
     }
 
-    pub fn update(
-        &mut self,
-        elapsed: f32,
-        path_blocks: &Vec<Block>,
-        player: &mut Player,
-    ) {
+    pub fn update(&mut self, elapsed: f32, path_blocks: &Vec<Block>, player: &mut Player) {
         if self.state == MonsterState::Attacking {
             // Die and deal damange to the player.
             player.health -= Monster::DAMAGE;

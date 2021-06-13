@@ -1,21 +1,17 @@
 use crate::{
-    block::BLOCK_SIZE,
     asset_manager::AssetManager,
-    player::Player,
-    ui::*,
-    monster::MonsterState,
-    towers::tower::*,
-    towers::ninja_tower::*,
-    monster_spawner::MonsterSpawner,
+    block::BLOCK_SIZE,
     board::Board,
-    drawable::*,
+    monster::MonsterState,
+    monster_spawner::MonsterSpawner,
+    player::Player,
+    towers::{basic_tower::*, ninja_tower::*},
+    ui::*,
 };
 
 use ggez::{
-    Context,
-    GameResult,
     event::{self, EventHandler, KeyCode, KeyMods},
-    graphics
+    graphics, Context, GameResult,
 };
 
 use std::time;
@@ -56,11 +52,7 @@ impl EventHandler for MainState {
         self.monster_spawner.update(elapsed, &mut self.board);
 
         for monster in self.board.monsters.iter_mut() {
-            monster.update(
-                elapsed,
-                &self.board.path_blocks,
-                &mut self.player,
-            );
+            monster.update(elapsed, &self.board.path_blocks, &mut self.player);
         }
 
         self.board
@@ -95,9 +87,9 @@ impl EventHandler for MainState {
         }
 
         // Draw tower attacks.
-        // for tower in self.board.towers.iter_mut() {
-        //     tower.draw_attacks(ctx, &self.board.monsters)?;
-        // }
+        for tower in self.board.towers.iter_mut() {
+            tower.draw_abilities(ctx, &self.board.monsters)?;
+        }
 
         for gold_pile in self.board.gold_piles.iter_mut() {
             gold_pile.draw(ctx, &self.asset_manager)?;
@@ -134,19 +126,15 @@ impl EventHandler for MainState {
             if self.player.gold >= 10 {
                 self.player.gold -= 10;
                 if self.ui.selected_tile_type == TowerType::Basic {
-                    self.board.towers.push(
-                        Box::new(BasicTower::new([
-                            (x / BLOCK_SIZE).floor(),
-                            (y / BLOCK_SIZE).floor(),
-                        ]))
-                    );
+                    self.board.towers.push(Box::new(BasicTower::new([
+                        (x / BLOCK_SIZE).floor(),
+                        (y / BLOCK_SIZE).floor(),
+                    ])));
                 } else if self.ui.selected_tile_type == TowerType::Ninja {
-                    self.board.towers.push(
-                        Box::new(NinjaTower::new([
-                            (x / BLOCK_SIZE).floor(),
-                            (y / BLOCK_SIZE).floor(),
-                        ]))
-                    );
+                    self.board.towers.push(Box::new(NinjaTower::new([
+                        (x / BLOCK_SIZE).floor(),
+                        (y / BLOCK_SIZE).floor(),
+                    ])));
                 }
             }
         }
@@ -157,7 +145,7 @@ impl EventHandler for MainState {
         _ctx: &mut Context,
         keycode: KeyCode,
         _keymods: KeyMods,
-        _repeat: bool
+        _repeat: bool,
     ) {
         if keycode == KeyCode::Key1 {
             self.ui.selected_tile_type = TowerType::Basic;

@@ -1,8 +1,4 @@
-use ggez::{
-    graphics,
-    Context,
-    GameResult,
-};
+use ggez::{graphics, Context, GameResult};
 
 pub const BLOCK_SIZE: f32 = 35.0;
 

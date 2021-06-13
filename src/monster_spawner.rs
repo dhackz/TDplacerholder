@@ -1,7 +1,4 @@
-use crate::{
-    Board,
-    monster::Monster,
-};
+use crate::{monster::Monster, Board};
 
 pub struct MonsterSpawner {
     pub spawn_schedule: Vec<f32>,
