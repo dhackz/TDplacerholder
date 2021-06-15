@@ -1,5 +1,7 @@
 use crate::asset_manager::AssetManager;
 
+use log::debug;
+
 use ggez::{graphics, Context, GameResult};
 
 pub struct GoldPile {
@@ -14,6 +16,7 @@ impl GoldPile {
             y: self.position[1] - 10.0,
         },);
 
+        debug!("GoldPile: draw: drawing at location ({:?})", location);
         graphics::draw(ctx, &asset_manager.gold_sprite, location)?;
 
         Ok(())

@@ -1,3 +1,6 @@
+extern crate pretty_env_logger;
+#[macro_use] extern crate log;
+
 use crate::{
     block::{Block, BLOCK_SIZE},
     board::Board,
@@ -6,6 +9,8 @@ use crate::{
 };
 
 use ggez::{event, GameResult};
+
+use log::{log_enabled, Level};
 
 use std::env;
 use std::path;
@@ -23,6 +28,8 @@ mod towers;
 mod ui;
 
 fn main() -> GameResult {
+    pretty_env_logger::init();
+
     let resource_dir = if let Ok(manifest_file) = env::var("CARGO_MANIFEST_DIR") {
         let mut path = path::PathBuf::from(manifest_file);
         path.push("resources");
