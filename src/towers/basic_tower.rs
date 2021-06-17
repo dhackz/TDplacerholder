@@ -1,5 +1,5 @@
 use crate::{
-    asset_manager::AssetManager, block::BLOCK_SIZE, gold::GoldPile, monster::Monster,
+    asset_manager::AssetManager, block::BLOCK_SIZE, gold::GoldPile, monsters::monster::Monster,
     towers::tower::Tower,
 };
 
@@ -84,12 +84,9 @@ impl Tower for BasicTower {
         Ok(())
     }
 
-    fn draw_abilities(&mut self, ctx: &mut Context, monsters: &Vec<Monster>) -> GameResult {
+    fn draw_abilities(&mut self, ctx: &mut Context, monsters: &Vec<Box<dyn Monster>>) -> GameResult {
         for monster in monsters.iter() {
-            let monster_center = [
-                monster.position[0] + Monster::SIZE / 2.0,
-                monster.position[1] + Monster::SIZE / 2.0,
-            ];
+            let monster_center = monster.get_center_pos_abs();
 
             if self.position_is_in_attack_range(monster_center) {
                 self.draw_attack(ctx, self.get_center_pos_abs(), monster_center)?;
@@ -101,7 +98,7 @@ impl Tower for BasicTower {
     fn update(
         &mut self,
         elapsed: f32,
-        monsters: &mut Vec<Monster>,
+        monsters: &mut Vec<Box<dyn Monster>>,
         gold_piles: &mut Vec<GoldPile>,
         asset_manager: &mut AssetManager,
     ) {

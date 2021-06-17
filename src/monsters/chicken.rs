@@ -1,3 +1,4 @@
+use crate::monsters::monster::{Monster, MonsterState};
 use crate::{asset_manager::AssetManager, gold::GoldPile, Block, Player, BLOCK_SIZE};
 
 use ggez::{
@@ -8,20 +9,13 @@ use ggez::{
 
 use rand::*;
 
-#[derive(Eq, Ord, PartialEq, PartialOrd, Debug)]
-pub enum MonsterState {
-    Walking,
-    Attacking,
-    Dead,
-}
-
 #[derive(Eq, PartialEq)]
 pub enum Direction {
     Left,
     Right,
 }
 
-pub struct Monster {
+pub struct Chicken {
     pub position: [f32; 2],
     pub speed: f32,
     pub health: f32,
@@ -30,57 +24,18 @@ pub struct Monster {
     pub direction: Direction,
 }
 
-impl Monster {
+impl Chicken {
     pub const SIZE: f32 = 20.0;
     pub const DAMAGE: f32 = 1.0;
 
-    pub fn new_basic_monster() -> Monster {
-        Monster {
+    pub fn new() -> Chicken {
+        Chicken {
             health: 100.0,
             speed: 100.0,
             position: [0.0, 0.0],
             move_goal: 0,
             state: MonsterState::Walking,
             direction: Direction::Right,
-        }
-    }
-
-    pub fn get_center_pos_abs(&self) -> [f32; 2] {
-        [
-            self.position[0] + Monster::SIZE / 2.0,
-            self.position[1] + Monster::SIZE / 2.0,
-        ]
-    }
-
-    pub fn recieve_damage(
-        &mut self,
-        damage: f32,
-        gold_piles: &mut Vec<GoldPile>,
-        asset_manager: &mut AssetManager,
-    ) {
-        if self.state == MonsterState::Dead {
-            // Already dead do nothing.
-            return;
-        }
-
-        self.health -= damage;
-
-        if self.health <= 0.0 {
-            asset_manager.monster_hurt_sound.play().unwrap();
-            self.state = MonsterState::Dead;
-
-            let offset = 10.0;
-            let mut rng = rand::thread_rng();
-
-            let gold_position = [
-                self.position[0] + (rng.gen::<f32>() * offset - offset * 2.0),
-                self.position[1] + (rng.gen::<f32>() * offset - offset * 2.0),
-            ];
-
-            gold_piles.push(GoldPile {
-                position: gold_position,
-                value: 10,
-            });
         }
     }
 
@@ -103,8 +58,8 @@ impl Monster {
 
         // Goal is for center of monster to pass center of block position.
         let _goal = path_blocks[self.move_goal].pos;
-        let goal_x = _goal.0 * BLOCK_SIZE + BLOCK_SIZE / 2.0 - Monster::SIZE / 2.0;
-        let goal_y = _goal.1 * BLOCK_SIZE + BLOCK_SIZE / 2.0 - Monster::SIZE / 2.0;
+        let goal_x = _goal.0 * BLOCK_SIZE + BLOCK_SIZE / 2.0 - Chicken::SIZE / 2.0;
+        let goal_y = _goal.1 * BLOCK_SIZE + BLOCK_SIZE / 2.0 - Chicken::SIZE / 2.0;
         let goal = (goal_x, goal_y);
 
         // Distance to next goal position.
@@ -143,10 +98,52 @@ impl Monster {
         }
     }
 
-    pub fn update(&mut self, elapsed: f32, path_blocks: &Vec<Block>, player: &mut Player) {
+}
+
+impl Monster for Chicken {
+    fn get_center_pos_abs(&self) -> [f32; 2] {
+        [
+            self.position[0] + Chicken::SIZE / 2.0,
+            self.position[1] + Chicken::SIZE / 2.0,
+        ]
+    }
+
+    fn recieve_damage(
+        &mut self,
+        damage: f32,
+        gold_piles: &mut Vec<GoldPile>,
+        asset_manager: &mut AssetManager,
+    ) {
+        if self.state == MonsterState::Dead {
+            // Already dead do nothing.
+            return;
+        }
+
+        self.health -= damage;
+
+        if self.health <= 0.0 {
+            asset_manager.monster_hurt_sound.play().unwrap();
+            self.state = MonsterState::Dead;
+
+            let offset = 10.0;
+            let mut rng = rand::thread_rng();
+
+            let gold_position = [
+                self.position[0] + (rng.gen::<f32>() * offset - offset * 2.0),
+                self.position[1] + (rng.gen::<f32>() * offset - offset * 2.0),
+            ];
+
+            gold_piles.push(GoldPile {
+                position: gold_position,
+                value: 10,
+            });
+        }
+    }
+
+    fn update(&mut self, elapsed: f32, path_blocks: &Vec<Block>, player: &mut Player) {
         if self.state == MonsterState::Attacking {
             // Die and deal damange to the player.
-            player.health -= Monster::DAMAGE;
+            player.health -= Chicken::DAMAGE;
             self.state = MonsterState::Dead;
         }
 
@@ -158,7 +155,7 @@ impl Monster {
         self.try_moving(elapsed, path_blocks);
     }
 
-    pub fn draw(&mut self, ctx: &mut Context, asset_manager: &AssetManager) -> GameResult {
+    fn draw(&mut self, ctx: &mut Context, asset_manager: &AssetManager) -> GameResult {
         let half_width = asset_manager.monster_sprite.width() as f32 / 2.0;
         let half_height = asset_manager.monster_sprite.height() as f32 / 2.0;
 
@@ -192,5 +189,9 @@ impl Monster {
         }
 
         Ok(())
+    }
+
+    fn get_current_state(&self) -> MonsterState {
+        self.state
     }
 }

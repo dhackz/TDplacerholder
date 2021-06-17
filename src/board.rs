@@ -1,9 +1,9 @@
-use crate::{base::Base, block::Block, gold::GoldPile, monster::Monster, towers::tower::Tower};
+use crate::{base::Base, block::Block, gold::GoldPile, monsters::monster::Monster, towers::tower::Tower};
 
 pub struct Board {
     pub path_blocks: Vec<Block>,
     pub towers: Vec<Box<dyn Tower>>,
-    pub monsters: Vec<Monster>,
+    pub monsters: Vec<Box<dyn Monster>>,
     pub gold_piles: Vec<GoldPile>,
     pub base: Base,
 }

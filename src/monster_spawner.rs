@@ -1,4 +1,7 @@
-use crate::{monster::Monster, Board};
+use crate::{
+    monsters::chicken::Chicken,
+    Board
+};
 
 pub struct MonsterSpawner {
     pub spawn_schedule: Vec<f32>,
@@ -19,7 +22,8 @@ impl MonsterSpawner {
 
         for i in 0..self.spawn_schedule.len() {
             if self.spawn_schedule[i] < self.elapsed_time {
-                board.monsters.push(Monster::new_basic_monster());
+                board.monsters.push(Box::new(Chicken::new()));
+
                 if i == self.spawn_schedule.len() - 1 {
                     self.spawn_schedule = vec![];
                 }

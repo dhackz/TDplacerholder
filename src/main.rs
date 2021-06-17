@@ -20,11 +20,12 @@ mod block;
 mod board;
 mod gold;
 mod main_state;
-mod monster;
 mod monster_spawner;
 mod player;
-mod towers;
 mod ui;
+
+mod towers;
+mod monsters;
 
 fn main() -> GameResult {
     pretty_env_logger::init();

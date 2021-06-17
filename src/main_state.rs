@@ -2,7 +2,7 @@ use crate::{
     asset_manager::AssetManager,
     block::BLOCK_SIZE,
     board::Board,
-    monster::MonsterState,
+    monsters::monster::MonsterState,
     monster_spawner::MonsterSpawner,
     player::Player,
     towers::{basic_tower::*, ninja_tower::*},
@@ -64,7 +64,7 @@ impl EventHandler for MainState {
         );
         self.board
             .monsters
-            .retain(|x| x.state != MonsterState::Dead);
+            .retain(|x| x.get_current_state() != MonsterState::Dead);
         debug!(
             "MainState: update: monsters length after removing dead monsters: {}",
             self.board.monsters.len()
