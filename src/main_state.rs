@@ -18,8 +18,6 @@ use ggez::{
 
 use std::time;
 
-const FILENAME: &str = "main_state";
-
 pub struct MainState {
     asset_manager: AssetManager,
     player: Player,
@@ -35,7 +33,7 @@ impl MainState {
             asset_manager: AssetManager::new(ctx),
             player: Player {
                 health: 100.0,
-                gold: 100,
+                gold: 30,
             },
             monster_spawner: MonsterSpawner::new(),
             ui: UI {
@@ -60,11 +58,17 @@ impl EventHandler for MainState {
             monster.update(elapsed, &self.board.path_blocks, &mut self.player);
         }
 
-        debug!("MainState: update: monsters length before removing dead monsters: {}", self.board.monsters.len());
+        debug!(
+            "MainState: update: monsters length before removing dead monsters: {}",
+            self.board.monsters.len()
+        );
         self.board
             .monsters
             .retain(|x| x.state != MonsterState::Dead);
-        debug!("MainState: update: monsters length after removing dead monsters: {}", self.board.monsters.len());
+        debug!(
+            "MainState: update: monsters length after removing dead monsters: {}",
+            self.board.monsters.len()
+        );
 
         for tower in self.board.towers.iter_mut() {
             tower.update(
@@ -133,7 +137,10 @@ impl EventHandler for MainState {
         x: f32,
         y: f32,
     ) {
-        debug!("MainState: mouse_button_down_event: button({:?}), x({}), y({}).", _button, x, y);
+        debug!(
+            "MainState: mouse_button_down_event: button({:?}), x({}), y({}).",
+            _button, x, y
+        );
 
         if let Some(_) = self.ui.selected_tile_location {
             if self.player.gold >= 10 {
@@ -162,7 +169,10 @@ impl EventHandler for MainState {
         _keymods: KeyMods,
         _repeat: bool,
     ) {
-        debug!("MainState: key_down_event: keycode({:?}), keymods({:?}), repeat({})", keycode, _keymods, _repeat);
+        debug!(
+            "MainState: key_down_event: keycode({:?}), keymods({:?}), repeat({})",
+            keycode, _keymods, _repeat
+        );
 
         if keycode == KeyCode::Key1 {
             debug!("MainState: key_down_event: switching to TowerType::Basic.");

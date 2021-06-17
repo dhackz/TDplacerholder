@@ -1,6 +1,10 @@
 use crate::{asset_manager::AssetManager, gold::GoldPile, Block, Player, BLOCK_SIZE};
 
-use ggez::{audio::SoundSource, graphics, Context, GameResult};
+use ggez::{
+    audio::SoundSource,
+    graphics::{self, DrawParam},
+    Context, GameResult,
+};
 
 use rand::*;
 
@@ -11,12 +15,19 @@ pub enum MonsterState {
     Dead,
 }
 
+#[derive(Eq, PartialEq)]
+pub enum Direction {
+    Left,
+    Right,
+}
+
 pub struct Monster {
     pub position: [f32; 2],
     pub speed: f32,
     pub health: f32,
     pub move_goal: usize,
     pub state: MonsterState,
+    pub direction: Direction,
 }
 
 impl Monster {
@@ -30,6 +41,7 @@ impl Monster {
             position: [0.0, 0.0],
             move_goal: 0,
             state: MonsterState::Walking,
+            direction: Direction::Right,
         }
     }
 
@@ -99,6 +111,12 @@ impl Monster {
         let mut dir = (goal.0 - self.position[0], goal.1 - self.position[1]);
         let mut dist = dir.0 * dir.0 + dir.1 * dir.1;
 
+        if dir.0 >= 0.0 {
+            self.direction = Direction::Right;
+        } else {
+            self.direction = Direction::Left;
+        }
+
         // Special case where we are exactly at the right position.
         if dist == 0.0 {
             self.move_goal += 1;
@@ -141,12 +159,37 @@ impl Monster {
     }
 
     pub fn draw(&mut self, ctx: &mut Context, asset_manager: &AssetManager) -> GameResult {
-        let location = (ggez::mint::Point2 {
-            x: self.position[0],
-            y: self.position[1] - 10.0,
-        },);
+        let half_width = asset_manager.monster_sprite.width() as f32 / 2.0;
+        let half_height = asset_manager.monster_sprite.height() as f32 / 2.0;
 
-        graphics::draw(ctx, &asset_manager.monster_sprite, location)?;
+        if self.direction == Direction::Left {
+            // Flipping along y-axis causes image to end up at a position
+            // (-width, 0). Offsetting with (+width/2, -height/2) makes the
+            // image center end up at (0,0).
+            let offset_position = [
+                self.position[0] + half_width,
+                self.position[1] - half_height,
+            ];
+
+            // Flip along y-axis. Scale then move.
+            graphics::draw(
+                ctx,
+                &asset_manager.monster_sprite,
+                DrawParam::default()
+                    .scale([-1.0, 1.0])
+                    .dest(offset_position),
+            )?;
+        } else {
+            let offset_position = [
+                self.position[0] - half_width + 10.0, /* Image specific x-offset */
+                self.position[1] - half_height,
+            ];
+            graphics::draw(
+                ctx,
+                &asset_manager.monster_sprite,
+                DrawParam::default().dest(offset_position),
+            )?;
+        }
 
         Ok(())
     }

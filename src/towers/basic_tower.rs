@@ -31,7 +31,10 @@ impl BasicTower {
 
     fn position_is_in_attack_range(&self, position_abs: [f32; 2]) -> bool {
         let tower_center_pos_abs = self.get_center_pos_abs();
-        debug!("position_is_in_attack_range: position_abs ({:?}), tower_center_pos_abs ({:?}).", position_abs, tower_center_pos_abs);
+        debug!(
+            "position_is_in_attack_range: position_abs ({:?}), tower_center_pos_abs ({:?}).",
+            position_abs, tower_center_pos_abs
+        );
 
         let dx = tower_center_pos_abs[0] - position_abs[0];
         let dy = tower_center_pos_abs[1] - position_abs[1];
@@ -45,9 +48,13 @@ impl BasicTower {
         from_abs: [f32; 2],
         to_abs: [f32; 2],
     ) -> GameResult {
-        debug!("draw_attack: from_abs ({:?}), to_abs ({:?}).", from_abs, to_abs);
+        debug!(
+            "draw_attack: from_abs ({:?}), to_abs ({:?}).",
+            from_abs, to_abs
+        );
 
-        if from_abs == to_abs { // Early exit, nothing to draw.
+        if from_abs == to_abs {
+            // Early exit, nothing to draw.
             return Ok(());
         }
 
@@ -98,7 +105,12 @@ impl Tower for BasicTower {
         gold_piles: &mut Vec<GoldPile>,
         asset_manager: &mut AssetManager,
     ) {
-        debug!("update: elapsed ({}), monsters length ({}), gold_piles length ({}).", elapsed, monsters.len(), gold_piles.len());
+        debug!(
+            "update: elapsed ({}), monsters length ({}), gold_piles length ({}).",
+            elapsed,
+            monsters.len(),
+            gold_piles.len()
+        );
         self.attack_cooldown -= elapsed;
 
         if self.attack_cooldown < 0.0 {
