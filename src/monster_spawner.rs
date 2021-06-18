@@ -1,16 +1,27 @@
 use crate::{
-    monsters::chicken::Chicken,
-    Board
+    monsters::chicken::Chicken, monsters::cool_chicken::CoolChicken,
+    monsters::monster::MonsterType, Board,
 };
 
 pub struct MonsterSpawner {
-    pub spawn_schedule: Vec<f32>,
+    pub spawn_schedule: Vec<(MonsterType, f32)>,
     pub elapsed_time: f32,
 }
 
 impl MonsterSpawner {
     pub fn new() -> MonsterSpawner {
-        let spawn_schedule = vec![0.0, 3.0, 5.0, 7.0, 8.0, 8.5, 8.6, 8.7, 8.8];
+        let spawn_schedule = vec![
+            (MonsterType::Chicken, 0.0),
+            (MonsterType::Chicken, 3.0),
+            (MonsterType::Chicken, 5.0),
+            (MonsterType::Chicken, 7.0),
+            (MonsterType::Chicken, 8.0),
+            (MonsterType::Chicken, 8.5),
+            (MonsterType::Chicken, 8.6),
+            (MonsterType::Chicken, 8.7),
+            (MonsterType::Chicken, 8.8),
+            (MonsterType::CoolChicken, 14.0),
+        ];
         MonsterSpawner {
             spawn_schedule,
             elapsed_time: 0.0,
@@ -21,8 +32,12 @@ impl MonsterSpawner {
         self.elapsed_time += elapsed;
 
         for i in 0..self.spawn_schedule.len() {
-            if self.spawn_schedule[i] < self.elapsed_time {
-                board.monsters.push(Box::new(Chicken::new()));
+            if self.spawn_schedule[i].1 < self.elapsed_time {
+                if self.spawn_schedule[i].0 == MonsterType::Chicken {
+                    board.monsters.push(Box::new(Chicken::new()));
+                } else if self.spawn_schedule[i].0 == MonsterType::CoolChicken {
+                    board.monsters.push(Box::new(CoolChicken::new()));
+                }
 
                 if i == self.spawn_schedule.len() - 1 {
                     self.spawn_schedule = vec![];

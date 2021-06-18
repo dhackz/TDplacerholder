@@ -2,6 +2,12 @@ use crate::{asset_manager::AssetManager, gold::GoldPile, Block, Player};
 
 use ggez::{Context, GameResult};
 
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Debug)]
+pub enum MonsterType {
+    Chicken,
+    CoolChicken,
+}
+
 #[derive(Copy, Clone, Eq, Ord, PartialEq, PartialOrd, Debug)]
 pub enum MonsterState {
     Walking,

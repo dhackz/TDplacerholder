@@ -76,7 +76,11 @@ impl Tower for NinjaTower {
         Ok(())
     }
 
-    fn draw_abilities(&mut self, ctx: &mut Context, monsters: &Vec<Box<dyn Monster>>) -> GameResult {
+    fn draw_abilities(
+        &mut self,
+        ctx: &mut Context,
+        monsters: &Vec<Box<dyn Monster>>,
+    ) -> GameResult {
         for monster in monsters.iter() {
             let monster_center = monster.get_center_pos_abs();
 

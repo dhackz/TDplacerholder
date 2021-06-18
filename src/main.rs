@@ -24,8 +24,8 @@ mod monster_spawner;
 mod player;
 mod ui;
 
-mod towers;
 mod monsters;
+mod towers;
 
 fn main() -> GameResult {
     pretty_env_logger::init();

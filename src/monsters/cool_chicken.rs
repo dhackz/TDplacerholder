@@ -15,7 +15,7 @@ pub enum Direction {
     Right,
 }
 
-pub struct Chicken {
+pub struct CoolChicken {
     pub position: [f32; 2],
     pub speed: f32,
     pub health: f32,
@@ -24,12 +24,12 @@ pub struct Chicken {
     pub direction: Direction,
 }
 
-impl Chicken {
+impl CoolChicken {
     pub const SIZE: f32 = 20.0;
     pub const DAMAGE: f32 = 1.0;
 
-    pub fn new() -> Chicken {
-        Chicken {
+    pub fn new() -> CoolChicken {
+        CoolChicken {
             health: 100.0,
             speed: 100.0,
             position: [0.0, 0.0],
@@ -58,8 +58,8 @@ impl Chicken {
 
         // Goal is for center of monster to pass center of block position.
         let _goal = path_blocks[self.move_goal].pos;
-        let goal_x = _goal.0 * BLOCK_SIZE + BLOCK_SIZE / 2.0 - Chicken::SIZE / 2.0;
-        let goal_y = _goal.1 * BLOCK_SIZE + BLOCK_SIZE / 2.0 - Chicken::SIZE / 2.0;
+        let goal_x = _goal.0 * BLOCK_SIZE + BLOCK_SIZE / 2.0 - CoolChicken::SIZE / 2.0;
+        let goal_y = _goal.1 * BLOCK_SIZE + BLOCK_SIZE / 2.0 - CoolChicken::SIZE / 2.0;
         let goal = (goal_x, goal_y);
 
         // Distance to next goal position.
@@ -99,11 +99,11 @@ impl Chicken {
     }
 }
 
-impl Monster for Chicken {
+impl Monster for CoolChicken {
     fn get_center_pos_abs(&self) -> [f32; 2] {
         [
-            self.position[0] + Chicken::SIZE / 2.0,
-            self.position[1] + Chicken::SIZE / 2.0,
+            self.position[0] + CoolChicken::SIZE / 2.0,
+            self.position[1] + CoolChicken::SIZE / 2.0,
         ]
     }
 
@@ -142,7 +142,7 @@ impl Monster for Chicken {
     fn update(&mut self, elapsed: f32, path_blocks: &Vec<Block>, player: &mut Player) {
         if self.state == MonsterState::Attacking {
             // Die and deal damange to the player.
-            player.health -= Chicken::DAMAGE;
+            player.health -= CoolChicken::DAMAGE;
             self.state = MonsterState::Dead;
         }
 
@@ -155,8 +155,8 @@ impl Monster for Chicken {
     }
 
     fn draw(&mut self, ctx: &mut Context, asset_manager: &AssetManager) -> GameResult {
-        let half_width = asset_manager.chicken_sprite.width() as f32 / 2.0;
-        let half_height = asset_manager.chicken_sprite.height() as f32 / 2.0;
+        let half_width = asset_manager.cool_chicken_sprite.width() as f32 / 2.0;
+        let half_height = asset_manager.cool_chicken_sprite.height() as f32 / 2.0;
 
         if self.direction == Direction::Left {
             // Flipping along y-axis causes image to end up at a position
@@ -170,7 +170,7 @@ impl Monster for Chicken {
             // Flip along y-axis. Scale then move.
             graphics::draw(
                 ctx,
-                &asset_manager.chicken_sprite,
+                &asset_manager.cool_chicken_sprite,
                 DrawParam::default()
                     .scale([-1.0, 1.0])
                     .dest(offset_position),
@@ -182,7 +182,7 @@ impl Monster for Chicken {
             ];
             graphics::draw(
                 ctx,
-                &asset_manager.chicken_sprite,
+                &asset_manager.cool_chicken_sprite,
                 DrawParam::default().dest(offset_position),
             )?;
         }
