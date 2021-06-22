@@ -15,4 +15,6 @@ pub trait Tower {
         gold_piles: &mut Vec<GoldPile>,
         asset_manager: &mut AssetManager,
     );
+
+    fn get_block_position(&self) -> [f32; 2];
 }

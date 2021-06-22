@@ -57,16 +57,16 @@ impl Chicken {
         }
 
         // Goal is for center of monster to pass center of block position.
-        let _goal = path_blocks[self.move_goal].pos;
-        let goal_x = _goal.0 * BLOCK_SIZE + BLOCK_SIZE / 2.0 - Chicken::SIZE / 2.0;
-        let goal_y = _goal.1 * BLOCK_SIZE + BLOCK_SIZE / 2.0 - Chicken::SIZE / 2.0;
-        let goal = (goal_x, goal_y);
+        let _goal = path_blocks[self.move_goal].position;
+        let goal_x = _goal[0] * BLOCK_SIZE + BLOCK_SIZE / 2.0 - Chicken::SIZE / 2.0;
+        let goal_y = _goal[1] * BLOCK_SIZE + BLOCK_SIZE / 2.0 - Chicken::SIZE / 2.0;
+        let goal = [goal_x, goal_y];
 
         // Distance to next goal position.
-        let mut dir = (goal.0 - self.position[0], goal.1 - self.position[1]);
-        let mut dist = dir.0 * dir.0 + dir.1 * dir.1;
+        let mut dir = [goal[0] - self.position[0], goal[1] - self.position[1]];
+        let mut dist = dir[0] * dir[0] + dir[1] * dir[1];
 
-        if dir.0 >= 0.0 {
+        if dir[0] >= 0.0 {
             self.direction = Direction::Right;
         } else {
             self.direction = Direction::Left;
@@ -80,20 +80,20 @@ impl Chicken {
 
             // Normailze the direction vector so it doesn't scale the speed.
             dist = dist.sqrt();
-            dir.0 = dir.0 / dist;
-            dir.1 = dir.1 / dist;
+            dir[0] = dir[0] / dist;
+            dir[1] = dir[1] / dist;
 
             // If 1 step is too far/we pass the goal only move to the goal
             // position/don't overshoot.
             if dist < self.speed * elapsed {
                 self.move_goal += 1;
 
-                self.position[0] += dir.0 * dist;
-                self.position[1] += dir.1 * dist;
+                self.position[0] += dir[0] * dist;
+                self.position[1] += dir[1] * dist;
             } else {
                 // 1 step will not reach the goal.
-                self.position[0] += dir.0 * self.speed * elapsed;
-                self.position[1] += dir.1 * self.speed * elapsed;
+                self.position[0] += dir[0] * self.speed * elapsed;
+                self.position[1] += dir[1] * self.speed * elapsed;
             }
         }
     }

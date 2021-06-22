@@ -140,4 +140,8 @@ impl Tower for NinjaTower {
             }
         }
     }
+
+    fn get_block_position(&self) -> [f32; 2] {
+        self.position
+    }
 }

@@ -3,7 +3,7 @@ use ggez::{graphics, Context, GameResult};
 pub const BLOCK_SIZE: f32 = 35.0;
 
 pub struct Block {
-    pub pos: (f32, f32),
+    pub position: [f32; 2],
 }
 
 impl Block {
@@ -16,8 +16,8 @@ impl Block {
         )?;
 
         let location = (ggez::mint::Point2 {
-            x: self.pos.0 * BLOCK_SIZE,
-            y: self.pos.1 * BLOCK_SIZE,
+            x: self.position[0] * BLOCK_SIZE,
+            y: self.position[1] * BLOCK_SIZE,
         },);
 
         graphics::draw(ctx, &rectangle, location)?;

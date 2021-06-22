@@ -133,4 +133,8 @@ impl Tower for BasicTower {
             }
         }
     }
+
+    fn get_block_position(&self) -> [f32; 2] {
+        self.position
+    }
 }

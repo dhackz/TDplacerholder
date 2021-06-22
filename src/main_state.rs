@@ -143,20 +143,25 @@ impl EventHandler for MainState {
         );
 
         if let Some(_) = self.ui.selected_tile_location {
-            if self.player.gold >= 10 {
-                self.player.gold -= 10;
+            if self.board.position_is_occupied([x,y]) {
+                // Check that place isn't already occupied.
+                let block_position = [
+                    (x / BLOCK_SIZE).floor(),
+                    (y / BLOCK_SIZE).floor(),
+                ];
+
                 if self.ui.selected_tile_type == TowerType::Basic {
-                    debug!("MainState: mouse_button_down_event: placing new BasicTower at x({}), y({}).", (x / BLOCK_SIZE).floor(), (y / BLOCK_SIZE).floor());
-                    self.board.towers.push(Box::new(BasicTower::new([
-                        (x / BLOCK_SIZE).floor(),
-                        (y / BLOCK_SIZE).floor(),
-                    ])));
+                    if self.player.gold >= 10 {
+                        self.player.gold -= 10;
+                        debug!("MainState: mouse_button_down_event: placing new BasicTower at x({}), y({}).", block_position[0], block_position[1]);
+                        self.board.towers.push(Box::new(BasicTower::new(block_position)));
+                    }
                 } else if self.ui.selected_tile_type == TowerType::Ninja {
-                    debug!("MainState: mouse_button_down_event: placing new NinjaTower at x({}), y({}).", (x / BLOCK_SIZE).floor(), (y / BLOCK_SIZE).floor());
-                    self.board.towers.push(Box::new(NinjaTower::new([
-                        (x / BLOCK_SIZE).floor(),
-                        (y / BLOCK_SIZE).floor(),
-                    ])));
+                    if self.player.gold >= 20 {
+                        self.player.gold -= 20;
+                        debug!("MainState: mouse_button_down_event: placing new NinjaTower at x({}), y({}).", block_position[0], block_position[1]);
+                        self.board.towers.push(Box::new(NinjaTower::new(block_position)));
+                    }
                 }
             }
         }
