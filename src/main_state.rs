@@ -143,8 +143,8 @@ impl EventHandler for MainState {
         );
 
         if let Some(_) = self.ui.selected_tile_location {
-            if self.board.position_is_occupied([x,y]) {
-                // Check that place isn't already occupied.
+            // Check that position is clear.
+            if !self.board.position_is_occupied([x,y]) {
                 let block_position = [
                     (x / BLOCK_SIZE).floor(),
                     (y / BLOCK_SIZE).floor(),

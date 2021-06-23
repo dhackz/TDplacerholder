@@ -13,11 +13,18 @@ impl Base {
     pub fn draw(&mut self, ctx: &mut Context, asset_manager: &AssetManager) -> GameResult {
         let location = (ggez::mint::Point2 {
             x: self.position[0] * BLOCK_SIZE + BASE_PADDING,
-            y: self.position[1] * BLOCK_SIZE + BASE_SIZE / 2.0 - BASE_PADDING,
+            y: self.position[1] * BLOCK_SIZE + BASE_PADDING,
         },);
 
         graphics::draw(ctx, &asset_manager.base_sprite, location)?;
 
         Ok(())
+    }
+
+    pub fn is_position_in_base(&self, position: [f32; 2]) -> bool {
+        position[0] >= self.position[0]*BLOCK_SIZE - BASE_PADDING
+            && position[0] <= self.position[0]*BLOCK_SIZE + BASE_SIZE + 2.0*BASE_PADDING
+            && position[1] >= self.position[1]*BLOCK_SIZE
+            && position[1] <= self.position[1]*BLOCK_SIZE + BASE_SIZE + 2.0*BASE_PADDING
     }
 }

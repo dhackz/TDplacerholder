@@ -81,16 +81,20 @@ impl Board {
 
         for tower in self.towers.iter() {
             if tower.get_block_position() == block_position {
-                return false
+                return true
             }
         }
 
         for path_block in self.path_blocks.iter() {
             if path_block.position == block_position {
-                return false
+                return true
             }
         }
 
-        return true
+        if self.base.is_position_in_base(click_position) {
+            return true
+        }
+
+        return false
     }
 }
