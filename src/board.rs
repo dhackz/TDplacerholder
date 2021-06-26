@@ -1,6 +1,6 @@
 use crate::{
     BLOCK_SIZE,
-    base::{Base, BASE_PADDING, BASE_SIZE}, block::Block, gold::GoldPile, monsters::monster::Monster, towers::tower::Tower,
+    base::Base, block::Block, gold::GoldPile, monsters::monster::Monster, towers::tower::Tower,
 };
 
 pub struct Board {
@@ -96,5 +96,23 @@ impl Board {
         }
 
         return false
+    }
+
+    /// Special function used to ensure Towers are sorted by y position, this
+    /// is required since ggez does not have z-indexing.
+    pub fn add_tower(&mut self, tower: Box<dyn Tower>) {
+        debug!("Trying to place new tower at position {:?}.", tower.get_block_position());
+
+        // Find index where to insert new tower, based on sorted y position.
+        let mut index = 0;
+        for i in 0..self.towers.iter().len() {
+            if self.towers[i].get_block_position()[1] >= tower.get_block_position()[1] {
+                break;
+            }
+            index += 1;
+        }
+
+        debug!("New tower put at list index {}.", index);
+        self.towers.insert(index, tower);
     }
 }

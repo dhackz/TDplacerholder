@@ -33,7 +33,7 @@ impl MainState {
             asset_manager: AssetManager::new(ctx),
             player: Player {
                 health: 100.0,
-                gold: 30,
+                gold: 300,
             },
             monster_spawner: MonsterSpawner::new(),
             ui: UI {
@@ -154,13 +154,13 @@ impl EventHandler for MainState {
                     if self.player.gold >= 10 {
                         self.player.gold -= 10;
                         debug!("MainState: mouse_button_down_event: placing new BasicTower at x({}), y({}).", block_position[0], block_position[1]);
-                        self.board.towers.push(Box::new(BasicTower::new(block_position)));
+                        self.board.add_tower(Box::new(BasicTower::new(block_position)));
                     }
                 } else if self.ui.selected_tile_type == TowerType::Ninja {
                     if self.player.gold >= 20 {
                         self.player.gold -= 20;
                         debug!("MainState: mouse_button_down_event: placing new NinjaTower at x({}), y({}).", block_position[0], block_position[1]);
-                        self.board.towers.push(Box::new(NinjaTower::new(block_position)));
+                        self.board.add_tower(Box::new(NinjaTower::new(block_position)));
                     }
                 }
             }
