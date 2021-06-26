@@ -116,3 +116,63 @@ impl Board {
         self.towers.insert(index, tower);
     }
 }
+
+#[cfg(test)]
+mod tests{
+    use crate::{
+        Board,
+        towers::basic_tower::BasicTower,
+        towers::tower::Tower,
+    };
+
+    fn _check_towers_in_order(towers: &Vec<Box<dyn Tower>>) -> bool {
+        for i in 0..towers.len()-1 {
+            if towers[i].get_block_position()[1] > towers[i+1].get_block_position()[1] {
+                return false
+            }
+        }
+        return true
+    }
+
+    fn _fill_tower_positions(board: &mut Board, tower_y_positions: Vec::<f32>) {
+        for y in tower_y_positions {
+            board.add_tower(Box::new(BasicTower::new([0.0, y])));
+        }
+    }
+
+    #[test]
+    fn tower_order_0_1_2() {
+        let mut board = Board::generate(0, 0);
+        assert_eq!(board.towers.len(), 0);
+
+        _fill_tower_positions(&mut board, vec![0.0, 1.0, 2.0]);
+        assert_eq!(board.towers.len(), 3);
+
+        // Check sorted on y position.
+        assert!(_check_towers_in_order(&board.towers));
+    }
+
+    #[test]
+    fn tower_order_2_1_0() {
+        let mut board = Board::generate(0, 0);
+        assert_eq!(board.towers.len(), 0);
+
+        _fill_tower_positions(&mut board, vec![2.0, 1.0, 0.0]);
+        assert_eq!(board.towers.len(), 3);
+
+        // Check sorted on y position.
+        assert!(_check_towers_in_order(&board.towers));
+    }
+
+    #[test]
+    fn tower_order_2_0_1() {
+        let mut board = Board::generate(0, 0);
+        assert_eq!(board.towers.len(), 0);
+
+        _fill_tower_positions(&mut board, vec![2.0, 0.0, 1.0]);
+        assert_eq!(board.towers.len(), 3);
+
+        // Check sorted on y position.
+        assert!(_check_towers_in_order(&board.towers));
+    }
+}
