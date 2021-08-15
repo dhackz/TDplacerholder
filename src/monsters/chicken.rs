@@ -1,5 +1,8 @@
+use crate::asset_manager::AssetManager;
+use crate::gold::GoldPile;
 use crate::monsters::monster::{Monster, MonsterState};
-use crate::{asset_manager::AssetManager, gold::GoldPile, Block, Player, BLOCK_SIZE};
+use crate::utils::Scale;
+use crate::{Block, Player, BLOCK_SIZE};
 
 use ggez::{
     audio::SoundSource,
@@ -154,7 +157,12 @@ impl Monster for Chicken {
         self.try_moving(elapsed, path_blocks);
     }
 
-    fn draw(&mut self, ctx: &mut Context, asset_manager: &AssetManager) -> GameResult {
+    fn draw(
+        &mut self,
+        ctx: &mut Context,
+        scale: Scale,
+        asset_manager: &AssetManager,
+    ) -> GameResult {
         let half_width = asset_manager.chicken_sprite.width() as f32 / 2.0;
         let half_height = asset_manager.chicken_sprite.height() as f32 / 2.0;
 
@@ -162,28 +170,30 @@ impl Monster for Chicken {
             // Flipping along y-axis causes image to end up at a position
             // (-width, 0). Offsetting with (+width/2, -height/2) makes the
             // image center end up at (0,0).
-            let offset_position = [
+            let offset_position = scale.to_viewport_point(
                 self.position[0] + half_width,
                 self.position[1] - half_height,
-            ];
+            );
 
             // Flip along y-axis. Scale then move.
             graphics::draw(
                 ctx,
                 &asset_manager.chicken_sprite,
                 DrawParam::default()
-                    .scale([-1.0, 1.0])
+                    .scale([-scale.x, scale.y])
                     .dest(offset_position),
             )?;
         } else {
-            let offset_position = [
+            let offset_position = scale.to_viewport_point(
                 self.position[0] - half_width + 10.0, /* Image specific x-offset */
                 self.position[1] - half_height,
-            ];
+            );
             graphics::draw(
                 ctx,
                 &asset_manager.chicken_sprite,
-                DrawParam::default().dest(offset_position),
+                DrawParam::default()
+                    .scale([scale.x, scale.y])
+                    .dest(offset_position),
             )?;
         }
 

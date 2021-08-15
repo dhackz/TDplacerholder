@@ -9,7 +9,10 @@ use crate::{
     player::Player,
 };
 
-use ggez::{event, GameResult};
+use ggez::{
+    conf::{FullscreenType, WindowMode},
+    event, GameResult,
+};
 
 use std::env;
 use std::path;
@@ -23,6 +26,7 @@ mod main_state;
 mod monster_spawner;
 mod player;
 mod ui;
+mod utils;
 
 mod monsters;
 mod towers;
@@ -38,7 +42,22 @@ fn main() -> GameResult {
         path::PathBuf::from("./resources")
     };
 
-    let cb = ggez::ContextBuilder::new("TowerOfDerp", "rrEd").add_resource_path(resource_dir);
+    let mode = WindowMode {
+        width: 800.0,
+        height: 600.0,
+        maximized: false,
+        fullscreen_type: FullscreenType::Windowed,
+        borderless: false,
+        min_width: 0.0,
+        max_width: 0.0,
+        min_height: 0.0,
+        max_height: 0.0,
+        resizable: false,
+    };
+
+    let cb = ggez::ContextBuilder::new("TowerOfDerp", "rrEd")
+        .add_resource_path(resource_dir)
+        .window_mode(mode);
     let (ctx, event_loop) = &mut cb.build()?;
 
     let state = &mut MainState::new(ctx);

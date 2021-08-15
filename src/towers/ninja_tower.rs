@@ -1,3 +1,4 @@
+use crate::utils::Scale;
 use crate::{
     asset_manager::AssetManager, block::BLOCK_SIZE, gold::GoldPile, monsters::monster::Monster,
     towers::tower::Tower,
@@ -5,7 +6,9 @@ use crate::{
 
 use rand::Rng;
 
-use ggez::{audio::SoundSource, graphics, Context, GameResult};
+use ggez::{audio::SoundSource, Context, GameResult};
+use ggez::graphics::{self, DrawParam};
+use ggez::mint::Point2;
 
 pub struct NinjaTower {
     pub position: [f32; 2],
@@ -47,6 +50,7 @@ impl NinjaTower {
     fn draw_attack(
         &mut self,
         ctx: &mut Context,
+        scale: Scale,
         from_abs: [f32; 2],
         to_abs: [f32; 2],
     ) -> GameResult {
@@ -57,21 +61,39 @@ impl NinjaTower {
             graphics::Color::new(0.0, 1.0, 1.0, 1.0),
         )?;
 
-        let location = (ggez::mint::Point2 { x: 0.0, y: 0.0 },);
+        let location = Point2 { x: 0.0, y: 0.0 };
 
-        graphics::draw(ctx, &line, location)?;
+        graphics::draw(
+            ctx,
+            &line,
+            DrawParam::default()
+                .scale([scale.x, scale.y])
+                .dest(location),
+        )?;
+
         Ok(())
     }
 }
 
 impl Tower for NinjaTower {
-    fn draw(&mut self, ctx: &mut Context, asset_manager: &AssetManager) -> GameResult {
-        let location = (ggez::mint::Point2 {
-            x: self.position[0] * BLOCK_SIZE - 5.0,
-            y: self.position[1] * BLOCK_SIZE - 35.0,
-        },);
+    fn draw(
+        &mut self,
+        ctx: &mut Context,
+        scale: Scale,
+        asset_manager: &AssetManager,
+    ) -> GameResult {
+        let location = Point2 {
+            x: (self.position[0] * BLOCK_SIZE - 5.0) * scale.x,
+            y: (self.position[1] * BLOCK_SIZE - 35.0) * scale.y,
+        };
 
-        graphics::draw(ctx, &asset_manager.tower_ninja_sprite, location)?;
+        graphics::draw(
+            ctx,
+            &asset_manager.tower_ninja_sprite,
+            DrawParam::default()
+                .scale([scale.x, scale.y])
+                .dest(location),
+        )?;
 
         Ok(())
     }
@@ -79,13 +101,14 @@ impl Tower for NinjaTower {
     fn draw_abilities(
         &mut self,
         ctx: &mut Context,
+        scale: Scale,
         monsters: &Vec<Box<dyn Monster>>,
     ) -> GameResult {
         for monster in monsters.iter() {
             let monster_center = monster.get_center_pos_abs();
 
             if self.position_is_in_attack_range(monster_center) {
-                self.draw_attack(ctx, self.get_center_pos_abs(), monster_center)?;
+                self.draw_attack(ctx, scale, self.get_center_pos_abs(), monster_center)?;
             }
         }
         Ok(())

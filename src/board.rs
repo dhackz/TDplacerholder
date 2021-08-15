@@ -1,6 +1,6 @@
 use crate::{
-    BLOCK_SIZE,
     base::Base, block::Block, gold::GoldPile, monsters::monster::Monster, towers::tower::Tower,
+    BLOCK_SIZE,
 };
 
 pub struct Board {
@@ -14,62 +14,162 @@ pub struct Board {
 impl Board {
     pub fn generate(_seed: u64, _length: u32) -> Board {
         let mut path_blocks = Vec::new();
-        path_blocks.push(Block { position: [0.0, 0.0] });
-        path_blocks.push(Block { position: [0.0, 1.0] });
-        path_blocks.push(Block { position: [0.0, 2.0] });
-        path_blocks.push(Block { position: [1.0, 2.0] });
-        path_blocks.push(Block { position: [2.0, 2.0] });
-        path_blocks.push(Block { position: [2.0, 3.0] });
-        path_blocks.push(Block { position: [2.0, 3.0] });
-        path_blocks.push(Block { position: [2.0, 4.0] });
-        path_blocks.push(Block { position: [2.0, 5.0] });
-        path_blocks.push(Block { position: [3.0, 5.0] });
-        path_blocks.push(Block { position: [4.0, 5.0] });
-        path_blocks.push(Block { position: [5.0, 5.0] });
-        path_blocks.push(Block { position: [6.0, 5.0] });
-        path_blocks.push(Block { position: [7.0, 5.0] });
-        path_blocks.push(Block { position: [8.0, 5.0] });
-        path_blocks.push(Block { position: [9.0, 5.0] });
-        path_blocks.push(Block { position: [10.0, 5.0] });
-        path_blocks.push(Block { position: [11.0, 5.0] });
-        path_blocks.push(Block { position: [12.0, 5.0] });
-        path_blocks.push(Block { position: [13.0, 5.0] });
-        path_blocks.push(Block { position: [14.0, 5.0] });
-        path_blocks.push(Block { position: [15.0, 5.0] });
-        path_blocks.push(Block { position: [16.0, 5.0] });
-        path_blocks.push(Block { position: [17.0, 5.0] });
-        path_blocks.push(Block { position: [18.0, 5.0] });
-        path_blocks.push(Block { position: [19.0, 5.0] });
-        path_blocks.push(Block { position: [20.0, 5.0] });
-        path_blocks.push(Block { position: [20.0, 6.0] });
-        path_blocks.push(Block { position: [20.0, 7.0] });
-        path_blocks.push(Block { position: [20.0, 8.0] });
-        path_blocks.push(Block { position: [20.0, 9.0] });
-        path_blocks.push(Block { position: [19.0, 9.0] });
-        path_blocks.push(Block { position: [18.0, 9.0] });
-        path_blocks.push(Block { position: [17.0, 9.0] });
-        path_blocks.push(Block { position: [16.0, 9.0] });
-        path_blocks.push(Block { position: [15.0, 9.0] });
-        path_blocks.push(Block { position: [14.0, 9.0] });
-        path_blocks.push(Block { position: [13.0, 9.0] });
-        path_blocks.push(Block { position: [12.0, 9.0] });
-        path_blocks.push(Block { position: [11.0, 9.0] });
-        path_blocks.push(Block { position: [10.0, 9.0] });
-        path_blocks.push(Block { position: [9.0, 9.0] });
-        path_blocks.push(Block { position: [8.0, 9.0] });
-        path_blocks.push(Block { position: [7.0, 9.0] });
-        path_blocks.push(Block { position: [6.0, 9.0] });
-        path_blocks.push(Block { position: [5.0, 9.0] });
-        path_blocks.push(Block { position: [4.0, 9.0] });
-        path_blocks.push(Block { position: [3.0, 9.0] });
-        path_blocks.push(Block { position: [2.0, 9.0] });
+        path_blocks.push(Block {
+            position: [0.0, 0.0],
+        });
+        path_blocks.push(Block {
+            position: [0.0, 1.0],
+        });
+        path_blocks.push(Block {
+            position: [0.0, 2.0],
+        });
+        path_blocks.push(Block {
+            position: [1.0, 2.0],
+        });
+        path_blocks.push(Block {
+            position: [2.0, 2.0],
+        });
+        path_blocks.push(Block {
+            position: [2.0, 3.0],
+        });
+        path_blocks.push(Block {
+            position: [2.0, 3.0],
+        });
+        path_blocks.push(Block {
+            position: [2.0, 4.0],
+        });
+        path_blocks.push(Block {
+            position: [2.0, 5.0],
+        });
+        path_blocks.push(Block {
+            position: [3.0, 5.0],
+        });
+        path_blocks.push(Block {
+            position: [4.0, 5.0],
+        });
+        path_blocks.push(Block {
+            position: [5.0, 5.0],
+        });
+        path_blocks.push(Block {
+            position: [6.0, 5.0],
+        });
+        path_blocks.push(Block {
+            position: [7.0, 5.0],
+        });
+        path_blocks.push(Block {
+            position: [8.0, 5.0],
+        });
+        path_blocks.push(Block {
+            position: [9.0, 5.0],
+        });
+        path_blocks.push(Block {
+            position: [10.0, 5.0],
+        });
+        path_blocks.push(Block {
+            position: [11.0, 5.0],
+        });
+        path_blocks.push(Block {
+            position: [12.0, 5.0],
+        });
+        path_blocks.push(Block {
+            position: [13.0, 5.0],
+        });
+        path_blocks.push(Block {
+            position: [14.0, 5.0],
+        });
+        path_blocks.push(Block {
+            position: [15.0, 5.0],
+        });
+        path_blocks.push(Block {
+            position: [16.0, 5.0],
+        });
+        path_blocks.push(Block {
+            position: [17.0, 5.0],
+        });
+        path_blocks.push(Block {
+            position: [18.0, 5.0],
+        });
+        path_blocks.push(Block {
+            position: [19.0, 5.0],
+        });
+        path_blocks.push(Block {
+            position: [20.0, 5.0],
+        });
+        path_blocks.push(Block {
+            position: [20.0, 6.0],
+        });
+        path_blocks.push(Block {
+            position: [20.0, 7.0],
+        });
+        path_blocks.push(Block {
+            position: [20.0, 8.0],
+        });
+        path_blocks.push(Block {
+            position: [20.0, 9.0],
+        });
+        path_blocks.push(Block {
+            position: [19.0, 9.0],
+        });
+        path_blocks.push(Block {
+            position: [18.0, 9.0],
+        });
+        path_blocks.push(Block {
+            position: [17.0, 9.0],
+        });
+        path_blocks.push(Block {
+            position: [16.0, 9.0],
+        });
+        path_blocks.push(Block {
+            position: [15.0, 9.0],
+        });
+        path_blocks.push(Block {
+            position: [14.0, 9.0],
+        });
+        path_blocks.push(Block {
+            position: [13.0, 9.0],
+        });
+        path_blocks.push(Block {
+            position: [12.0, 9.0],
+        });
+        path_blocks.push(Block {
+            position: [11.0, 9.0],
+        });
+        path_blocks.push(Block {
+            position: [10.0, 9.0],
+        });
+        path_blocks.push(Block {
+            position: [9.0, 9.0],
+        });
+        path_blocks.push(Block {
+            position: [8.0, 9.0],
+        });
+        path_blocks.push(Block {
+            position: [7.0, 9.0],
+        });
+        path_blocks.push(Block {
+            position: [6.0, 9.0],
+        });
+        path_blocks.push(Block {
+            position: [5.0, 9.0],
+        });
+        path_blocks.push(Block {
+            position: [4.0, 9.0],
+        });
+        path_blocks.push(Block {
+            position: [3.0, 9.0],
+        });
+        path_blocks.push(Block {
+            position: [2.0, 9.0],
+        });
 
         Board {
             path_blocks,
             towers: Vec::new(),
             monsters: Vec::new(),
             gold_piles: Vec::new(),
-            base: Base { position: [0.0, 8.0] },
+            base: Base {
+                position: [0.0, 8.0],
+            },
         }
     }
 
@@ -81,27 +181,30 @@ impl Board {
 
         for tower in self.towers.iter() {
             if tower.get_block_position() == block_position {
-                return true
+                return true;
             }
         }
 
         for path_block in self.path_blocks.iter() {
             if path_block.position == block_position {
-                return true
+                return true;
             }
         }
 
         if self.base.is_position_in_base(click_position) {
-            return true
+            return true;
         }
 
-        return false
+        return false;
     }
 
     /// Special function used to ensure Towers are sorted by y position, this
     /// is required since ggez does not have z-indexing.
     pub fn add_tower(&mut self, tower: Box<dyn Tower>) {
-        debug!("Trying to place new tower at position {:?}.", tower.get_block_position());
+        debug!(
+            "Trying to place new tower at position {:?}.",
+            tower.get_block_position()
+        );
 
         // Find index where to insert new tower, based on sorted y position.
         let mut index = 0;
@@ -118,23 +221,19 @@ impl Board {
 }
 
 #[cfg(test)]
-mod tests{
-    use crate::{
-        Board,
-        towers::basic_tower::BasicTower,
-        towers::tower::Tower,
-    };
+mod tests {
+    use crate::{towers::basic_tower::BasicTower, towers::tower::Tower, Board};
 
     fn _check_towers_in_order(towers: &Vec<Box<dyn Tower>>) -> bool {
-        for i in 0..towers.len()-1 {
-            if towers[i].get_block_position()[1] > towers[i+1].get_block_position()[1] {
-                return false
+        for i in 0..towers.len() - 1 {
+            if towers[i].get_block_position()[1] > towers[i + 1].get_block_position()[1] {
+                return false;
             }
         }
-        return true
+        return true;
     }
 
-    fn _fill_tower_positions(board: &mut Board, tower_y_positions: Vec::<f32>) {
+    fn _fill_tower_positions(board: &mut Board, tower_y_positions: Vec<f32>) {
         for y in tower_y_positions {
             board.add_tower(Box::new(BasicTower::new([0.0, y])));
         }

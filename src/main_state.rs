@@ -7,6 +7,7 @@ use crate::{
     player::Player,
     towers::{basic_tower::*, ninja_tower::*},
     ui::*,
+    utils::Scale,
 };
 
 use log::debug;
@@ -25,10 +26,18 @@ pub struct MainState {
     ui: UI,
     board: Board,
     time: time::Instant,
+    scale: Scale,
 }
 
 impl MainState {
     pub fn new(ctx: &mut Context) -> MainState {
+        let screen_rect = graphics::size(ctx);
+
+        let scale = Scale {
+            x: screen_rect.0 / 800.0, // 800.0 default width.
+            y: screen_rect.1 / 600.0, // 600.0 default height.
+        };
+
         MainState {
             asset_manager: AssetManager::new(ctx),
             player: Player {
@@ -38,11 +47,12 @@ impl MainState {
             monster_spawner: MonsterSpawner::new(),
             ui: UI {
                 build_bar: Vec::new(),
-                selected_tile_location: None,
+                selected_tile_rect: None,
                 selected_tile_type: TowerType::Basic,
             },
             board: Board::generate(1, 2),
             time: time::Instant::now(),
+            scale,
         }
     }
 }
@@ -87,34 +97,34 @@ impl EventHandler for MainState {
 
         debug!("MainState: draw: drawing path blocks.");
         for block in self.board.path_blocks.iter_mut() {
-            block.draw(ctx)?;
+            block.draw(ctx, self.scale)?;
         }
 
         debug!("MainState: draw: drawing monsters.");
         for monster in self.board.monsters.iter_mut() {
-            monster.draw(ctx, &self.asset_manager)?;
+            monster.draw(ctx, self.scale, &self.asset_manager)?;
         }
 
         debug!("MainState: draw: drawing towers.");
         for tower in self.board.towers.iter_mut() {
-            tower.draw(ctx, &self.asset_manager)?;
+            tower.draw(ctx, self.scale, &self.asset_manager)?;
         }
 
         debug!("MainState: draw: drawing tower attacks.");
         // Draw tower attacks.
         for tower in self.board.towers.iter_mut() {
-            tower.draw_abilities(ctx, &self.board.monsters)?;
+            tower.draw_abilities(ctx, self.scale, &self.board.monsters)?;
         }
 
         debug!("MainState: draw: drawing gold piles.");
         for gold_pile in self.board.gold_piles.iter_mut() {
-            gold_pile.draw(ctx, &self.asset_manager)?;
+            gold_pile.draw(ctx, self.scale, &self.asset_manager)?;
         }
 
         debug!("MainState: draw: drawing base.");
-        self.board.base.draw(ctx, &self.asset_manager)?;
+        self.board.base.draw(ctx, self.scale, &self.asset_manager)?;
         debug!("MainState: draw: drawing base.");
-        self.ui.draw(ctx, &self.player)?;
+        self.ui.draw(ctx, self.scale, &self.player)?;
 
         graphics::present(ctx)?;
         Ok(())
@@ -122,6 +132,8 @@ impl EventHandler for MainState {
 
     fn mouse_motion_event(&mut self, _ctx: &mut Context, x: f32, y: f32, _dx: f32, _dy: f32) {
         self.ui.mouse_motion_event(
+            _ctx,
+            self.scale,
             x,
             y,
             &mut self.board.gold_piles,
@@ -142,25 +154,32 @@ impl EventHandler for MainState {
             _button, x, y
         );
 
-        if let Some(_) = self.ui.selected_tile_location {
+        if let Some(_) = self.ui.selected_tile_rect {
+            let scaled_position = self.scale.to_game_point(x, y);
+
             // Check that position is clear.
-            if !self.board.position_is_occupied([x,y]) {
+            if !self
+                .board
+                .position_is_occupied([scaled_position.x, scaled_position.y])
+            {
                 let block_position = [
-                    (x / BLOCK_SIZE).floor(),
-                    (y / BLOCK_SIZE).floor(),
+                    (scaled_position.x / BLOCK_SIZE).floor(),
+                    (scaled_position.y / BLOCK_SIZE).floor(),
                 ];
 
                 if self.ui.selected_tile_type == TowerType::Basic {
                     if self.player.gold >= 10 {
                         self.player.gold -= 10;
                         debug!("MainState: mouse_button_down_event: placing new BasicTower at x({}), y({}).", block_position[0], block_position[1]);
-                        self.board.add_tower(Box::new(BasicTower::new(block_position)));
+                        self.board
+                            .add_tower(Box::new(BasicTower::new(block_position)));
                     }
                 } else if self.ui.selected_tile_type == TowerType::Ninja {
                     if self.player.gold >= 20 {
                         self.player.gold -= 20;
                         debug!("MainState: mouse_button_down_event: placing new NinjaTower at x({}), y({}).", block_position[0], block_position[1]);
-                        self.board.add_tower(Box::new(NinjaTower::new(block_position)));
+                        self.board
+                            .add_tower(Box::new(NinjaTower::new(block_position)));
                     }
                 }
             }
