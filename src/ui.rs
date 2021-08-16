@@ -1,11 +1,17 @@
 use crate::asset_manager::AssetManager;
 use crate::gold::GoldPile;
+use crate::tower_icon::{TowerIcon, TOWER_ICON_SIZE};
+use crate::towers::tower::TowerType;
 use crate::utils::Scale;
 use crate::{Player, BLOCK_SIZE};
 
-use ggez::{audio::SoundSource, graphics, Context, GameResult};
+use ggez::graphics;
+use ggez::mint::Point2;
+use ggez::{audio::SoundSource, Context, GameResult};
 
 pub const UI_HEIGHT: f32 = 180.0;
+
+const BUILD_BAR_POSITION: Point2<f32> = Point2 { x: 180.0, y: 10.0 };
 
 const GOLD_X: f32 = 30.0;
 const GOLD_Y: f32 = 30.0;
@@ -13,26 +19,28 @@ const GOLD_Y: f32 = 30.0;
 const HP_X: f32 = 30.0;
 const HP_Y: f32 = 50.0;
 
-pub struct TowerIcon {}
-
-#[derive(Debug, Eq, PartialEq)]
-pub enum TowerType {
-    Basic,
-    Ninja,
-}
-
 pub struct UI {
     pub build_bar: Vec<TowerIcon>,
     pub selected_tile_rect: Option<[f32; 2]>,
     pub selected_tile_type: TowerType,
 }
 
+/// UI responsible for drawing the status bar and build bar. All
+/// drawing/positioning should be relative to the UI location:
+/// (0, screen_height-UI_HEIGHT)
+/// and scaled.
 impl UI {
-    pub fn draw(&mut self, ctx: &mut Context, scale: Scale, player: &Player) -> GameResult {
+    pub fn draw(
+        &mut self,
+        ctx: &mut Context,
+        scale: Scale,
+        player: &Player,
+        asset_manager: &AssetManager,
+    ) -> GameResult {
         self.draw_background(ctx, scale)?;
         self.draw_gold(ctx, scale, player)?;
         self.draw_hp(ctx, scale, player)?;
-        // self.draw_tower_icons(ctx)?;
+        self.draw_build_bar(ctx, scale, asset_manager)?;
         self.draw_selected_tile(ctx, scale)?;
         Ok(())
     }
@@ -72,6 +80,32 @@ impl UI {
         let location_y = screen_rect.h - UI_HEIGHT + HP_Y;
         let location = (scale.to_viewport_point(location_x, location_y),);
         graphics::draw(ctx, &text, location)?;
+        Ok(())
+    }
+
+    /// Draws all tower icons inside the build_bar which can fit inside the UI.
+    /// Overflowing tower icons are not drawn.
+    fn draw_build_bar(
+        &mut self,
+        ctx: &mut Context,
+        scale: Scale,
+        asset_manager: &AssetManager,
+    ) -> GameResult {
+        let screen_size = ggez::graphics::size(ctx);
+
+        let mut offset = Point2 {
+            x: BUILD_BAR_POSITION.x,
+            y: screen_size.1 - UI_HEIGHT + BUILD_BAR_POSITION.y,
+        };
+        debug!("draw_build_bar: build_bar offset: {:?}", offset);
+
+        debug!("draw_build_bar: drawing tower icons.");
+        for tower in self.build_bar.iter_mut() {
+            tower.draw(ctx, scale, asset_manager, offset)?;
+            // Only tiles in x direction for now.
+            offset.x += TOWER_ICON_SIZE;
+        }
+
         Ok(())
     }
 
@@ -126,7 +160,7 @@ impl UI {
                 // Within 20px radius.
                 if xd * xd + yd * yd < 20.0 * 20.0 {
                     player.gold += gold_pile.value;
-                    asset_manager.gold_sound.play().unwrap();
+                    asset_manager.item_assets.gold_sound.play().unwrap();
                     false
                 } else {
                     true

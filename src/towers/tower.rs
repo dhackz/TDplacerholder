@@ -3,6 +3,12 @@ use crate::{asset_manager::AssetManager, gold::GoldPile, monsters::monster::Mons
 
 use ggez::{Context, GameResult};
 
+#[derive(Debug, Eq, PartialEq)]
+pub enum TowerType {
+    Basic,
+    Ninja,
+}
+
 pub trait Tower {
     fn draw(&mut self, ctx: &mut Context, scale: Scale, asset_manager: &AssetManager)
         -> GameResult;

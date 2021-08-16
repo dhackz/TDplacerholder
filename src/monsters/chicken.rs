@@ -124,7 +124,11 @@ impl Monster for Chicken {
         self.health -= damage;
 
         if self.health <= 0.0 {
-            asset_manager.monster_hurt_sound.play().unwrap();
+            asset_manager
+                .monster_assets
+                .monster_hurt_sound
+                .play()
+                .unwrap();
             self.state = MonsterState::Dead;
 
             let offset = 10.0;
@@ -163,8 +167,8 @@ impl Monster for Chicken {
         scale: Scale,
         asset_manager: &AssetManager,
     ) -> GameResult {
-        let half_width = asset_manager.chicken_sprite.width() as f32 / 2.0;
-        let half_height = asset_manager.chicken_sprite.height() as f32 / 2.0;
+        let half_width = asset_manager.monster_assets.chicken_sprite.width() as f32 / 2.0;
+        let half_height = asset_manager.monster_assets.chicken_sprite.height() as f32 / 2.0;
 
         if self.direction == Direction::Left {
             // Flipping along y-axis causes image to end up at a position
@@ -178,7 +182,7 @@ impl Monster for Chicken {
             // Flip along y-axis. Scale then move.
             graphics::draw(
                 ctx,
-                &asset_manager.chicken_sprite,
+                &asset_manager.monster_assets.chicken_sprite,
                 DrawParam::default()
                     .scale([-scale.x, scale.y])
                     .dest(offset_position),
@@ -190,7 +194,7 @@ impl Monster for Chicken {
             );
             graphics::draw(
                 ctx,
-                &asset_manager.chicken_sprite,
+                &asset_manager.monster_assets.chicken_sprite,
                 DrawParam::default()
                     .scale([scale.x, scale.y])
                     .dest(offset_position),

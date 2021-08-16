@@ -6,9 +6,9 @@ use crate::{
 
 use rand::Rng;
 
-use ggez::{audio::SoundSource, Context, GameResult};
 use ggez::graphics::{self, DrawParam};
 use ggez::mint::Point2;
+use ggez::{audio::SoundSource, Context, GameResult};
 
 pub struct NinjaTower {
     pub position: [f32; 2],
@@ -89,7 +89,7 @@ impl Tower for NinjaTower {
 
         graphics::draw(
             ctx,
-            &asset_manager.tower_ninja_sprite,
+            &asset_manager.tower_assets.tower_ninja_sprite,
             DrawParam::default()
                 .scale([scale.x, scale.y])
                 .dest(location),
@@ -140,7 +140,11 @@ impl Tower for NinjaTower {
                 }
             }
             if damage_dealt {
-                asset_manager.tower_attack_sound.play().unwrap();
+                asset_manager
+                    .tower_assets
+                    .tower_attack_sound
+                    .play()
+                    .unwrap();
                 self.attack_cooldown = NinjaTower::ATTACK_TIMER;
             }
         }
@@ -156,6 +160,7 @@ impl Tower for NinjaTower {
                     asset_manager,
                 );
                 asset_manager
+                    .tower_assets
                     .ninja_tower_strong_attack_sound
                     .play()
                     .unwrap();

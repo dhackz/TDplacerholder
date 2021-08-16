@@ -25,6 +25,7 @@ mod gold;
 mod main_state;
 mod monster_spawner;
 mod player;
+mod tower_icon;
 mod ui;
 mod utils;
 
@@ -43,7 +44,7 @@ fn main() -> GameResult {
     };
 
     let mode = WindowMode {
-        width: 800.0,
+        width: 300.0,
         height: 600.0,
         maximized: false,
         fullscreen_type: FullscreenType::Windowed,

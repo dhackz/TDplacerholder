@@ -26,7 +26,7 @@ impl Base {
 
         graphics::draw(
             ctx,
-            &asset_manager.base_sprite,
+            &asset_manager.base_assets.base_sprite,
             DrawParam::default()
                 .scale([scale.x, scale.y])
                 .dest(location),

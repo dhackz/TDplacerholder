@@ -92,7 +92,7 @@ impl Tower for BasicTower {
 
         graphics::draw(
             ctx,
-            &asset_manager.tower_sprite,
+            &asset_manager.tower_assets.tower_sprite,
             DrawParam::default()
                 .scale([scale.x, scale.y])
                 .dest(location),
@@ -146,7 +146,11 @@ impl Tower for BasicTower {
             }
             if damage_dealt {
                 info!("update: attacked at least one monster! Playing attack soundeffect.");
-                asset_manager.tower_attack_sound.play().unwrap();
+                asset_manager
+                    .tower_assets
+                    .tower_attack_sound
+                    .play()
+                    .unwrap();
                 self.attack_cooldown = BasicTower::ATTACK_TIMER;
             }
         }

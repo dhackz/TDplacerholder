@@ -10,12 +10,15 @@ use crate::{
     utils::Scale,
 };
 
-use log::debug;
+use crate::tower_icon::TowerIcon;
+use crate::towers::tower::TowerType;
 
 use ggez::{
     event::{self, EventHandler, KeyCode, KeyMods},
     graphics, Context, GameResult,
 };
+
+use log::debug;
 
 use std::time;
 
@@ -38,6 +41,14 @@ impl MainState {
             y: screen_rect.1 / 600.0, // 600.0 default height.
         };
 
+        let mut build_bar = Vec::new();
+        build_bar.push(TowerIcon {
+            tower_type: TowerType::Basic,
+        });
+        build_bar.push(TowerIcon {
+            tower_type: TowerType::Ninja,
+        });
+
         MainState {
             asset_manager: AssetManager::new(ctx),
             player: Player {
@@ -46,7 +57,7 @@ impl MainState {
             },
             monster_spawner: MonsterSpawner::new(),
             ui: UI {
-                build_bar: Vec::new(),
+                build_bar,
                 selected_tile_rect: None,
                 selected_tile_type: TowerType::Basic,
             },
@@ -123,8 +134,10 @@ impl EventHandler for MainState {
 
         debug!("MainState: draw: drawing base.");
         self.board.base.draw(ctx, self.scale, &self.asset_manager)?;
+
         debug!("MainState: draw: drawing base.");
-        self.ui.draw(ctx, self.scale, &self.player)?;
+        self.ui
+            .draw(ctx, self.scale, &self.player, &self.asset_manager)?;
 
         graphics::present(ctx)?;
         Ok(())

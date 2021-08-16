@@ -23,7 +23,7 @@ impl GoldPile {
         debug!("GoldPile: draw: drawing at location ({:?})", location);
         graphics::draw(
             ctx,
-            &asset_manager.gold_sprite,
+            &asset_manager.item_assets.gold_sprite,
             DrawParam::default()
                 .scale([scale.x, scale.y])
                 .dest(location),
