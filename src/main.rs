@@ -44,7 +44,7 @@ fn main() -> GameResult {
     };
 
     let mode = WindowMode {
-        width: 300.0,
+        width: 800.0,
         height: 600.0,
         maximized: false,
         fullscreen_type: FullscreenType::Windowed,

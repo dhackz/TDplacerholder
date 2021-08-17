@@ -3,7 +3,7 @@ use crate::{asset_manager::AssetManager, gold::GoldPile, monsters::monster::Mons
 
 use ggez::{Context, GameResult};
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum TowerType {
     Basic,
     Ninja,

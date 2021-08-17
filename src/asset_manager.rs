@@ -24,7 +24,9 @@ pub struct BaseAssets {
 
 pub struct BuilderUIAssets {
     pub tower_sprite: graphics::Image,
+    pub tower_selected_sprite: graphics::Image,
     pub ninja_tower_sprite: graphics::Image,
+    pub ninja_tower_selected_sprite: graphics::Image,
 }
 
 pub struct AssetManager {
@@ -62,7 +64,9 @@ impl AssetManager {
 
         let builder_ui_assets = BuilderUIAssets {
             tower_sprite: graphics::Image::new(ctx, "/ui/tower.png").unwrap(),
+            tower_selected_sprite: graphics::Image::new(ctx, "/ui/tower_selected.png").unwrap(),
             ninja_tower_sprite: graphics::Image::new(ctx, "/ui/ninja_tower.png").unwrap(),
+            ninja_tower_selected_sprite: graphics::Image::new(ctx, "/ui/ninja_tower_selected.png").unwrap()
         };
 
         AssetManager {

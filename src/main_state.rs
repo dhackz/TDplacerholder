@@ -29,18 +29,10 @@ pub struct MainState {
     ui: UI,
     board: Board,
     time: time::Instant,
-    scale: Scale,
 }
 
 impl MainState {
     pub fn new(ctx: &mut Context) -> MainState {
-        let screen_rect = graphics::size(ctx);
-
-        let scale = Scale {
-            x: screen_rect.0 / 800.0, // 800.0 default width.
-            y: screen_rect.1 / 600.0, // 600.0 default height.
-        };
-
         let mut build_bar = Vec::new();
         build_bar.push(TowerIcon {
             tower_type: TowerType::Basic,
@@ -58,12 +50,12 @@ impl MainState {
             monster_spawner: MonsterSpawner::new(),
             ui: UI {
                 build_bar,
+                hovering_on: None,
                 selected_tile_rect: None,
                 selected_tile_type: TowerType::Basic,
             },
             board: Board::generate(1, 2),
             time: time::Instant::now(),
-            scale,
         }
     }
 }
@@ -104,49 +96,63 @@ impl EventHandler for MainState {
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
+        let screen_rect = graphics::drawable_size(ctx);
+
+        let scale = Scale {
+            x: screen_rect.0 / 800.0, // 800.0 default width.
+            y: screen_rect.1 / 600.0, // 600.0 default height.
+        };
+
         graphics::clear(ctx, [0.1, 0.2, 0.3, 1.0].into());
 
         debug!("MainState: draw: drawing path blocks.");
         for block in self.board.path_blocks.iter_mut() {
-            block.draw(ctx, self.scale)?;
+            block.draw(ctx, scale)?;
         }
 
         debug!("MainState: draw: drawing monsters.");
         for monster in self.board.monsters.iter_mut() {
-            monster.draw(ctx, self.scale, &self.asset_manager)?;
+            monster.draw(ctx, scale, &self.asset_manager)?;
         }
 
         debug!("MainState: draw: drawing towers.");
         for tower in self.board.towers.iter_mut() {
-            tower.draw(ctx, self.scale, &self.asset_manager)?;
+            tower.draw(ctx, scale, &self.asset_manager)?;
         }
 
         debug!("MainState: draw: drawing tower attacks.");
         // Draw tower attacks.
         for tower in self.board.towers.iter_mut() {
-            tower.draw_abilities(ctx, self.scale, &self.board.monsters)?;
+            tower.draw_abilities(ctx, scale, &self.board.monsters)?;
         }
 
         debug!("MainState: draw: drawing gold piles.");
         for gold_pile in self.board.gold_piles.iter_mut() {
-            gold_pile.draw(ctx, self.scale, &self.asset_manager)?;
+            gold_pile.draw(ctx, scale, &self.asset_manager)?;
         }
 
         debug!("MainState: draw: drawing base.");
-        self.board.base.draw(ctx, self.scale, &self.asset_manager)?;
+        self.board.base.draw(ctx, scale, &self.asset_manager)?;
 
         debug!("MainState: draw: drawing base.");
         self.ui
-            .draw(ctx, self.scale, &self.player, &self.asset_manager)?;
+            .draw(ctx, scale, &self.player, &self.asset_manager)?;
 
         graphics::present(ctx)?;
         Ok(())
     }
 
-    fn mouse_motion_event(&mut self, _ctx: &mut Context, x: f32, y: f32, _dx: f32, _dy: f32) {
+    fn mouse_motion_event(&mut self, ctx: &mut Context, x: f32, y: f32, _dx: f32, _dy: f32) {
+        let screen_rect = graphics::drawable_size(ctx);
+
+        let scale = Scale {
+            x: screen_rect.0 / 800.0, // 800.0 default width.
+            y: screen_rect.1 / 600.0, // 600.0 default height.
+        };
+
         self.ui.mouse_motion_event(
-            _ctx,
-            self.scale,
+            ctx,
+            scale,
             x,
             y,
             &mut self.board.gold_piles,
@@ -157,7 +163,7 @@ impl EventHandler for MainState {
 
     fn mouse_button_down_event(
         &mut self,
-        _ctx: &mut Context,
+        ctx: &mut Context,
         _button: event::MouseButton,
         x: f32,
         y: f32,
@@ -167,8 +173,18 @@ impl EventHandler for MainState {
             _button, x, y
         );
 
+        if let Some(tower_type) = self.ui.hovering_on {
+            self.ui.selected_tile_type = tower_type;
+        }
+
         if let Some(_) = self.ui.selected_tile_rect {
-            let scaled_position = self.scale.to_game_point(x, y);
+            let screen_rect = graphics::drawable_size(ctx);
+
+            let scale = Scale {
+                x: screen_rect.0 / 800.0, // 800.0 default width.
+                y: screen_rect.1 / 600.0, // 600.0 default height.
+            };
+            let scaled_position = scale.to_game_point(x, y);
 
             // Check that position is clear.
             if !self

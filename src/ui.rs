@@ -21,6 +21,7 @@ const HP_Y: f32 = 50.0;
 
 pub struct UI {
     pub build_bar: Vec<TowerIcon>,
+    pub hovering_on: Option<TowerType>,
     pub selected_tile_rect: Option<[f32; 2]>,
     pub selected_tile_type: TowerType,
 }
@@ -46,7 +47,7 @@ impl UI {
     }
 
     fn draw_background(&mut self, ctx: &mut Context, scale: Scale) -> GameResult {
-        let screen_size = ggez::graphics::size(ctx);
+        let screen_size = ggez::graphics::drawable_size(ctx);
 
         let rectangle = graphics::Mesh::new_rectangle(
             ctx,
@@ -55,7 +56,10 @@ impl UI {
             ggez::graphics::Color::new(0.2, 0.3, 0.4, 1.0),
         )?;
 
-        let location = (scale.to_viewport_point(0.0, screen_size.1 - UI_HEIGHT),);
+        let location = (Point2 {
+            x: 0.0,
+            y: screen_size.1 - UI_HEIGHT * scale.y,
+        },);
 
         graphics::draw(ctx, &rectangle, location)?;
         Ok(())
@@ -91,7 +95,7 @@ impl UI {
         scale: Scale,
         asset_manager: &AssetManager,
     ) -> GameResult {
-        let screen_size = ggez::graphics::size(ctx);
+        let screen_size = ggez::graphics::drawable_size(ctx);
 
         let mut offset = Point2 {
             x: BUILD_BAR_POSITION.x,
@@ -101,7 +105,7 @@ impl UI {
 
         debug!("draw_build_bar: drawing tower icons.");
         for tower in self.build_bar.iter_mut() {
-            tower.draw(ctx, scale, asset_manager, offset)?;
+            tower.draw(ctx, scale, asset_manager, offset, self.hovering_on == Some(tower.tower_type))?;
             // Only tiles in x direction for now.
             offset.x += TOWER_ICON_SIZE;
         }
@@ -137,37 +141,106 @@ impl UI {
         player: &mut Player,
         asset_manager: &mut AssetManager,
     ) {
+        debug!("mouse_motion_event: {:?} {:?} {:?} {:?}", scale, x, y, gold_piles.len());
         let screen_rect = ggez::graphics::screen_coordinates(ctx);
 
         // Check inside game window.
         if x > 0.0 && x < screen_rect.w && y > 0.0 && y < screen_rect.h - UI_HEIGHT * scale.y {
-            // Convert x/y to in-game coordinates.
-            let scaled_block_size = scale.to_viewport_point(BLOCK_SIZE, BLOCK_SIZE);
-
-            // Change selected_tile.
-            self.selected_tile_rect = Some([
-                (x / scaled_block_size.x).floor() * scaled_block_size.x,
-                (y / scaled_block_size.y).floor() * scaled_block_size.y,
-            ]);
-
-            // Check for any gold to pick up.
-            gold_piles.retain(|gold_pile| {
-                let scaled_xy = scale.to_game_point(x, y);
-
-                let xd = scaled_xy.x - (gold_pile.position[0] + 35.0 / 2.0);
-                let yd = scaled_xy.y - (gold_pile.position[1] + 35.0 / 2.0);
-
-                // Within 20px radius.
-                if xd * xd + yd * yd < 20.0 * 20.0 {
-                    player.gold += gold_pile.value;
-                    asset_manager.item_assets.gold_sound.play().unwrap();
-                    false
-                } else {
-                    true
-                }
-            });
+            self.handle_in_game_hover(
+                scale,
+                x,
+                y,
+                gold_piles,
+                player,
+                asset_manager,
+            );
         } else {
-            self.selected_tile_rect = None;
+            self.handle_ui_bar_hover( ctx, scale, x, y, );
         }
+    }
+
+    pub fn handle_in_game_hover(
+        &mut self,
+        scale: Scale,
+        x: f32,
+        y: f32,
+        gold_piles: &mut Vec<GoldPile>,
+        player: &mut Player,
+        asset_manager: &mut AssetManager,
+    ) {
+        debug!("handle_in_game_hover");
+        // Convert x/y to in-game coordinates.
+        let scaled_block_size = scale.to_viewport_point(BLOCK_SIZE, BLOCK_SIZE);
+
+        // Change selected_tile.
+        self.selected_tile_rect = Some([
+            (x / scaled_block_size.x).floor() * scaled_block_size.x,
+            (y / scaled_block_size.y).floor() * scaled_block_size.y,
+        ]);
+
+        // Check for any gold to pick up.
+        gold_piles.retain(|gold_pile| {
+            let scaled_xy = scale.to_game_point(x, y);
+
+            let xd = scaled_xy.x - (gold_pile.position[0] + 35.0 / 2.0);
+            let yd = scaled_xy.y - (gold_pile.position[1] + 35.0 / 2.0);
+
+            // Within 20px radius.
+            if xd * xd + yd * yd < 20.0 * 20.0 {
+                player.gold += gold_pile.value;
+                asset_manager.item_assets.gold_sound.play().unwrap();
+                false
+            } else {
+                true
+            }
+        });
+    }
+
+    pub fn handle_ui_bar_hover(
+        &mut self,
+        ctx: &Context,
+        scale: Scale,
+        x: f32,
+        y: f32,
+    ) {
+        debug!("handle_ui_bar_hover");
+        let screen_size = ggez::graphics::drawable_size(ctx);
+
+        self.selected_tile_rect = None;
+
+        // Check if hovering over build bar.
+        let build_bar_position = Point2 {
+            x: BUILD_BAR_POSITION.x,
+            y: screen_size.1 - UI_HEIGHT + BUILD_BAR_POSITION.y,
+        };
+
+        let vp_build_bar_position = scale.to_viewport_point(
+            build_bar_position.x,
+            build_bar_position.y
+        );
+
+        // Dynamically scales in x-direction (or so is the idea) so can't
+        // statically check the right and bottom boundery.
+        debug!("scale: {:?}", scale);
+        if x > vp_build_bar_position.x && y > vp_build_bar_position.y {
+            // Check for each tower icon if the mouse is hovering over it.
+            let mut cumulative_width = vp_build_bar_position.x;
+
+            // All tower icons have the same size.
+            for tower in self.build_bar.iter() {
+                // Mouse is inside tower icon.
+                if x > cumulative_width
+                    && x < cumulative_width + TOWER_ICON_SIZE * scale.x
+                    && y > vp_build_bar_position.y * scale.y
+                    && y < vp_build_bar_position.y + TOWER_ICON_SIZE * scale.y {
+                    self.hovering_on = Some(tower.tower_type);
+                    return;
+                }
+                cumulative_width += TOWER_ICON_SIZE * scale.x;
+            }
+        }
+
+        // Mouse is not hovering over any tower icon, clear the hover.
+        self.hovering_on = None;
     }
 }
