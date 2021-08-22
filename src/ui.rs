@@ -165,18 +165,22 @@ impl UI {
     pub fn mouse_motion_event(
         &mut self,
         ctx: &Context,
-        scale: Scale,
         x: f32,
         y: f32,
         gold_piles: &mut Vec<GoldPile>,
         player: &mut Player,
         asset_manager: &mut AssetManager,
     ) {
+        let screen_rect = ggez::graphics::drawable_size(ctx);
+
+        let scale = Scale {
+            x: screen_rect.0 / 800.0, // 800.0 default width.
+            y: screen_rect.1 / 600.0, // 600.0 default height.
+        };
         debug!("mouse_motion_event: {:?} {:?} {:?} {:?}", scale, x, y, gold_piles.len());
-        let screen_rect = ggez::graphics::screen_coordinates(ctx);
 
         // Check inside game window.
-        if x > 0.0 && x < screen_rect.w && y > 0.0 && y < screen_rect.h - UI_HEIGHT * scale.y {
+        if x > 0.0 && x < screen_rect.0 && y > 0.0 && y < screen_rect.1 - UI_HEIGHT {
             self.handle_in_game_hover(
                 scale,
                 x,
@@ -186,7 +190,7 @@ impl UI {
                 asset_manager,
             );
         } else {
-            self.handle_ui_bar_hover( ctx, scale, x, y, );
+            self.handle_ui_bar_hover( scale, x, y, );
         }
     }
 
@@ -200,13 +204,11 @@ impl UI {
         asset_manager: &mut AssetManager,
     ) {
         debug!("handle_in_game_hover");
-        // Convert x/y to in-game coordinates.
-        let scaled_block_size = scale.to_viewport_point(BLOCK_SIZE, BLOCK_SIZE);
-
-        // Change selected_tile.
+        // Find which block mouse x/y is hovering over.
+        // Don't scale end position since it will be scaled when drawing.
         self.selected_tile_rect = Some([
-            (x / scaled_block_size.x).floor() * scaled_block_size.x,
-            (y / scaled_block_size.y).floor() * scaled_block_size.y,
+            (x / (BLOCK_SIZE * scale.x)).floor() * BLOCK_SIZE,
+            (y / (BLOCK_SIZE * scale.y)).floor() * BLOCK_SIZE,
         ]);
 
         // Check for any gold to pick up.
@@ -229,25 +231,16 @@ impl UI {
 
     pub fn handle_ui_bar_hover(
         &mut self,
-        ctx: &Context,
         scale: Scale,
         x: f32,
         y: f32,
     ) {
-        debug!("handle_ui_bar_hover");
-        let screen_size = ggez::graphics::drawable_size(ctx);
-
         self.selected_tile_rect = None;
 
         // Check if hovering over build bar.
-        let build_bar_position = Point2 {
-            x: BUILD_BAR_POSITION.x,
-            y: screen_size.1 - UI_HEIGHT + BUILD_BAR_POSITION.y,
-        };
-
         let vp_build_bar_position = scale.to_viewport_point(
-            build_bar_position.x,
-            build_bar_position.y
+            BUILD_BAR_POSITION.x,
+            self.position.y + BUILD_BAR_POSITION.y,
         );
 
         // Dynamically scales in x-direction (or so is the idea) so can't
@@ -273,5 +266,6 @@ impl UI {
 
         // Mouse is not hovering over any tower icon, clear the hover.
         self.hovering_on = None;
+        debug!("handle_in_game_hover:");
     }
 }

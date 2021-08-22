@@ -1,4 +1,3 @@
-use ggez::graphics::Rect;
 use ggez::mint::Point2;
 
 /// Represents the x and y scale used to map in-game coordinates with viewport.
@@ -20,15 +19,6 @@ impl Scale {
         Point2 {
             x: x * self.x,
             y: y * self.y,
-        }
-    }
-
-    pub fn to_viewport_rect(self, rect: Rect) -> Rect {
-        Rect {
-            x: rect.x * self.x,
-            y: rect.y * self.y,
-            w: rect.w * self.x,
-            h: rect.h * self.y,
         }
     }
 }

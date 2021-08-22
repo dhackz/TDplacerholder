@@ -10,10 +10,8 @@ use crate::{
     utils::Scale,
 };
 
-use crate::tower_icon::TowerIcon;
 use crate::towers::tower::TowerType;
 
-use ggez::mint::Point2;
 use ggez::{
     event::{self, EventHandler, KeyCode, KeyMods},
     graphics, Context, GameResult,
@@ -124,16 +122,8 @@ impl EventHandler for MainState {
     }
 
     fn mouse_motion_event(&mut self, ctx: &mut Context, x: f32, y: f32, _dx: f32, _dy: f32) {
-        let screen_rect = graphics::drawable_size(ctx);
-
-        let scale = Scale {
-            x: screen_rect.0 / 800.0, // 800.0 default width.
-            y: screen_rect.1 / 600.0, // 600.0 default height.
-        };
-
         self.ui.mouse_motion_event(
             ctx,
-            scale,
             x,
             y,
             &mut self.board.gold_piles,
