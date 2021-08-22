@@ -1,4 +1,3 @@
-use crate::utils::Scale;
 use crate::{asset_manager::AssetManager, gold::GoldPile, Block, Player};
 
 use ggez::{Context, GameResult};
@@ -30,6 +29,6 @@ pub trait Monster {
 
     fn update(&mut self, elapsed: f32, path_blocks: &Vec<Block>, player: &mut Player);
 
-    fn draw(&mut self, ctx: &mut Context, scale: Scale, asset_manager: &AssetManager)
+    fn draw(&mut self, ctx: &mut Context, asset_manager: &AssetManager)
         -> GameResult;
 }

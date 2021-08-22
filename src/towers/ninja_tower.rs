@@ -1,4 +1,3 @@
-use crate::utils::Scale;
 use crate::{
     asset_manager::AssetManager, block::BLOCK_SIZE, gold::GoldPile, monsters::monster::Monster,
     towers::tower::Tower,
@@ -50,7 +49,6 @@ impl NinjaTower {
     fn draw_attack(
         &mut self,
         ctx: &mut Context,
-        scale: Scale,
         from_abs: [f32; 2],
         to_abs: [f32; 2],
     ) -> GameResult {
@@ -67,7 +65,6 @@ impl NinjaTower {
             ctx,
             &line,
             DrawParam::default()
-                .scale([scale.x, scale.y])
                 .dest(location),
         )?;
 
@@ -79,19 +76,17 @@ impl Tower for NinjaTower {
     fn draw(
         &mut self,
         ctx: &mut Context,
-        scale: Scale,
         asset_manager: &AssetManager,
     ) -> GameResult {
         let location = Point2 {
-            x: (self.position[0] * BLOCK_SIZE - 5.0) * scale.x,
-            y: (self.position[1] * BLOCK_SIZE - 35.0) * scale.y,
+            x: self.position[0] * BLOCK_SIZE - 5.0,
+            y: self.position[1] * BLOCK_SIZE - 35.0,
         };
 
         graphics::draw(
             ctx,
             &asset_manager.tower_assets.tower_ninja_sprite,
             DrawParam::default()
-                .scale([scale.x, scale.y])
                 .dest(location),
         )?;
 
@@ -101,14 +96,13 @@ impl Tower for NinjaTower {
     fn draw_abilities(
         &mut self,
         ctx: &mut Context,
-        scale: Scale,
         monsters: &Vec<Box<dyn Monster>>,
     ) -> GameResult {
         for monster in monsters.iter() {
             let monster_center = monster.get_center_pos_abs();
 
             if self.position_is_in_attack_range(monster_center) {
-                self.draw_attack(ctx, scale, self.get_center_pos_abs(), monster_center)?;
+                self.draw_attack(ctx, self.get_center_pos_abs(), monster_center)?;
             }
         }
         Ok(())

@@ -1,6 +1,5 @@
 use crate::asset_manager::AssetManager;
 use crate::towers::tower::TowerType;
-use crate::utils::Scale;
 
 use ggez::graphics::{self, DrawParam};
 use ggez::mint::Point2;
@@ -17,7 +16,6 @@ impl TowerIcon {
     pub fn draw(
         &self,
         ctx: &mut Context,
-        scale: Scale,
         asset_manager: &AssetManager,
         location: Point2<f32>,
         selected: bool
@@ -40,14 +38,12 @@ impl TowerIcon {
         };
 
         // Destination isn't scaled by DrawParam.
-        let destination = scale.to_viewport_point(location.x, location.y);
-        debug!("draw: location: {:?}", destination);
+        debug!("draw: location: {:?}", location);
         graphics::draw(
             ctx,
             asset,
             DrawParam::default()
-                .scale([scale.x, scale.y])
-                .dest(destination),
+                .dest(location),
         )?;
 
         Ok(())

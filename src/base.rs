@@ -1,4 +1,3 @@
-use crate::utils::Scale;
 use crate::{asset_manager::AssetManager, BLOCK_SIZE};
 
 use ggez::graphics::DrawParam;
@@ -16,7 +15,6 @@ impl Base {
     pub fn draw(
         &mut self,
         ctx: &mut Context,
-        scale: Scale,
         asset_manager: &AssetManager,
     ) -> GameResult {
         let location = Point2 {
@@ -28,7 +26,6 @@ impl Base {
             ctx,
             &asset_manager.base_assets.base_sprite,
             DrawParam::default()
-                .scale([scale.x, scale.y])
                 .dest(location),
         )?;
 

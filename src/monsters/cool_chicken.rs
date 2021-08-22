@@ -1,5 +1,4 @@
 use crate::monsters::monster::{Monster, MonsterState};
-use crate::utils::Scale;
 use crate::{asset_manager::AssetManager, gold::GoldPile, Block, Player, BLOCK_SIZE};
 
 use ggez::{
@@ -162,7 +161,6 @@ impl Monster for CoolChicken {
     fn draw(
         &mut self,
         ctx: &mut Context,
-        scale: Scale,
         asset_manager: &AssetManager,
     ) -> GameResult {
         let half_width = asset_manager.monster_assets.cool_chicken_sprite.width() as f32 / 2.0;
@@ -173,8 +171,8 @@ impl Monster for CoolChicken {
             // (-width, 0). Offsetting with (+width/2, -height/2) makes the
             // image center end up at (0,0).
             let offset_position = [
-                (self.position[0] + half_width) * scale.x,
-                (self.position[1] - half_height) * scale.y,
+                self.position[0] + half_width,
+                self.position[1] - half_height,
             ];
 
             // Flip along y-axis. Scale then move.
@@ -182,19 +180,18 @@ impl Monster for CoolChicken {
                 ctx,
                 &asset_manager.monster_assets.cool_chicken_sprite,
                 DrawParam::default()
-                    .scale([-scale.x, scale.y])
+                    .scale([-1.0, 1.0])
                     .dest(offset_position),
             )?;
         } else {
             let offset_position = [
-                (self.position[0] - half_width + 10.0) * scale.x, /* Image specific x-offset */
-                (self.position[1] - half_height) * scale.y,
+                self.position[0] - half_width + 10.0, /* Image specific x-offset */
+                self.position[1] - half_height,
             ];
             graphics::draw(
                 ctx,
                 &asset_manager.monster_assets.cool_chicken_sprite,
                 DrawParam::default()
-                    .scale([scale.x, scale.y])
                     .dest(offset_position),
             )?;
         }

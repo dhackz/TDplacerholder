@@ -1,10 +1,10 @@
-use crate::utils::Scale;
 use crate::{
     asset_manager::AssetManager, block::BLOCK_SIZE, gold::GoldPile, monsters::monster::Monster,
     towers::tower::Tower,
 };
 
 use ggez::graphics::DrawParam;
+use ggez::mint::Point2;
 use ggez::{audio::SoundSource, graphics, Context, GameResult};
 
 pub struct BasicTower {
@@ -47,7 +47,6 @@ impl BasicTower {
     fn draw_attack(
         &mut self,
         ctx: &mut Context,
-        scale: Scale,
         from_abs: [f32; 2],
         to_abs: [f32; 2],
     ) -> GameResult {
@@ -61,12 +60,9 @@ impl BasicTower {
             return Ok(());
         }
 
-        let _from_abs = scale.to_viewport_point(from_abs[0], from_abs[1]);
-        let _to_abs = scale.to_viewport_point(to_abs[0], to_abs[1]);
-
         let line = graphics::Mesh::new_line(
             ctx,
-            &[_from_abs, _to_abs],
+            &[from_abs, to_abs],
             3.0,
             graphics::Color::new(0.0, 1.0, 1.0, 1.0),
         )?;
@@ -82,19 +78,17 @@ impl Tower for BasicTower {
     fn draw(
         &mut self,
         ctx: &mut Context,
-        scale: Scale,
         asset_manager: &AssetManager,
     ) -> GameResult {
-        let location = scale.to_viewport_point(
-            self.position[0] * BLOCK_SIZE - 5.0,
-            self.position[1] * BLOCK_SIZE - 35.0,
-        );
+        let location = Point2 {
+            x: self.position[0] * BLOCK_SIZE - 5.0,
+            y: self.position[1] * BLOCK_SIZE - 35.0,
+        };
 
         graphics::draw(
             ctx,
             &asset_manager.tower_assets.tower_sprite,
             DrawParam::default()
-                .scale([scale.x, scale.y])
                 .dest(location),
         )?;
 
@@ -104,14 +98,13 @@ impl Tower for BasicTower {
     fn draw_abilities(
         &mut self,
         ctx: &mut Context,
-        scale: Scale,
         monsters: &Vec<Box<dyn Monster>>,
     ) -> GameResult {
         for monster in monsters.iter() {
             let monster_center = monster.get_center_pos_abs();
 
             if self.position_is_in_attack_range(monster_center) {
-                self.draw_attack(ctx, scale, self.get_center_pos_abs(), monster_center)?;
+                self.draw_attack(ctx, self.get_center_pos_abs(), monster_center)?;
             }
         }
         Ok(())

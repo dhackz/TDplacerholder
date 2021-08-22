@@ -13,6 +13,7 @@ use crate::{
 use crate::tower_icon::TowerIcon;
 use crate::towers::tower::TowerType;
 
+use ggez::mint::Point2;
 use ggez::{
     event::{self, EventHandler, KeyCode, KeyMods},
     graphics, Context, GameResult,
@@ -33,14 +34,6 @@ pub struct MainState {
 
 impl MainState {
     pub fn new(ctx: &mut Context) -> MainState {
-        let mut build_bar = Vec::new();
-        build_bar.push(TowerIcon {
-            tower_type: TowerType::Basic,
-        });
-        build_bar.push(TowerIcon {
-            tower_type: TowerType::Ninja,
-        });
-
         MainState {
             asset_manager: AssetManager::new(ctx),
             player: Player {
@@ -48,12 +41,7 @@ impl MainState {
                 gold: 300,
             },
             monster_spawner: MonsterSpawner::new(),
-            ui: UI {
-                build_bar,
-                hovering_on: None,
-                selected_tile_rect: None,
-                selected_tile_type: TowerType::Basic,
-            },
+            ui: UI::new(),
             board: Board::generate(1, 2),
             time: time::Instant::now(),
         }
@@ -96,47 +84,40 @@ impl EventHandler for MainState {
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
-        let screen_rect = graphics::drawable_size(ctx);
-
-        let scale = Scale {
-            x: screen_rect.0 / 800.0, // 800.0 default width.
-            y: screen_rect.1 / 600.0, // 600.0 default height.
-        };
-
         graphics::clear(ctx, [0.1, 0.2, 0.3, 1.0].into());
 
         debug!("MainState: draw: drawing path blocks.");
         for block in self.board.path_blocks.iter_mut() {
-            block.draw(ctx, scale)?;
+            block.draw(ctx)?;
         }
 
         debug!("MainState: draw: drawing monsters.");
         for monster in self.board.monsters.iter_mut() {
-            monster.draw(ctx, scale, &self.asset_manager)?;
+            monster.draw(ctx, &self.asset_manager)?;
         }
 
         debug!("MainState: draw: drawing towers.");
         for tower in self.board.towers.iter_mut() {
-            tower.draw(ctx, scale, &self.asset_manager)?;
+            tower.draw(ctx, &self.asset_manager)?;
         }
 
         debug!("MainState: draw: drawing tower attacks.");
         // Draw tower attacks.
         for tower in self.board.towers.iter_mut() {
-            tower.draw_abilities(ctx, scale, &self.board.monsters)?;
+            tower.draw_abilities(ctx, &self.board.monsters)?;
         }
 
         debug!("MainState: draw: drawing gold piles.");
         for gold_pile in self.board.gold_piles.iter_mut() {
-            gold_pile.draw(ctx, scale, &self.asset_manager)?;
+            gold_pile.draw(ctx, &self.asset_manager)?;
         }
 
         debug!("MainState: draw: drawing base.");
-        self.board.base.draw(ctx, scale, &self.asset_manager)?;
+        self.board.base.draw(ctx, &self.asset_manager)?;
 
         debug!("MainState: draw: drawing base.");
         self.ui
-            .draw(ctx, scale, &self.player, &self.asset_manager)?;
+            .draw(ctx, &self.player, &self.asset_manager)?;
 
         graphics::present(ctx)?;
         Ok(())

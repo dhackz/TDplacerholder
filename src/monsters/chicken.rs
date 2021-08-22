@@ -1,7 +1,6 @@
 use crate::asset_manager::AssetManager;
 use crate::gold::GoldPile;
 use crate::monsters::monster::{Monster, MonsterState};
-use crate::utils::Scale;
 use crate::{Block, Player, BLOCK_SIZE};
 
 use ggez::{
@@ -9,6 +8,7 @@ use ggez::{
     graphics::{self, DrawParam},
     Context, GameResult,
 };
+use ggez::mint::Point2;
 
 use rand::*;
 
@@ -164,7 +164,6 @@ impl Monster for Chicken {
     fn draw(
         &mut self,
         ctx: &mut Context,
-        scale: Scale,
         asset_manager: &AssetManager,
     ) -> GameResult {
         let half_width = asset_manager.monster_assets.chicken_sprite.width() as f32 / 2.0;
@@ -174,29 +173,28 @@ impl Monster for Chicken {
             // Flipping along y-axis causes image to end up at a position
             // (-width, 0). Offsetting with (+width/2, -height/2) makes the
             // image center end up at (0,0).
-            let offset_position = scale.to_viewport_point(
-                self.position[0] + half_width,
-                self.position[1] - half_height,
-            );
+            let offset_position = Point2 {
+                x: self.position[0] + half_width,
+                y: self.position[1] - half_height,
+            };
 
             // Flip along y-axis. Scale then move.
             graphics::draw(
                 ctx,
                 &asset_manager.monster_assets.chicken_sprite,
                 DrawParam::default()
-                    .scale([-scale.x, scale.y])
+                    .scale([-1.0, 1.0])
                     .dest(offset_position),
             )?;
         } else {
-            let offset_position = scale.to_viewport_point(
-                self.position[0] - half_width + 10.0, /* Image specific x-offset */
-                self.position[1] - half_height,
-            );
+            let offset_position = Point2 {
+                x: self.position[0] - half_width + 10.0, /* Image specific x-offset */
+                y: self.position[1] - half_height,
+            };
             graphics::draw(
                 ctx,
                 &asset_manager.monster_assets.chicken_sprite,
                 DrawParam::default()
-                    .scale([scale.x, scale.y])
                     .dest(offset_position),
             )?;
         }

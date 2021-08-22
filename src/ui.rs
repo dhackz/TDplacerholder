@@ -5,8 +5,9 @@ use crate::towers::tower::TowerType;
 use crate::utils::Scale;
 use crate::{Player, BLOCK_SIZE};
 
-use ggez::graphics;
+use ggez::graphics::{self, DrawParam};
 use ggez::mint::Point2;
+use ggez::graphics::Rect;
 use ggez::{audio::SoundSource, Context, GameResult};
 
 pub const UI_HEIGHT: f32 = 180.0;
@@ -20,6 +21,8 @@ const HP_X: f32 = 30.0;
 const HP_Y: f32 = 50.0;
 
 pub struct UI {
+    position: Point2<f32>,
+    rect: Rect,
     pub build_bar: Vec<TowerIcon>,
     pub hovering_on: Option<TowerType>,
     pub selected_tile_rect: Option<[f32; 2]>,
@@ -31,58 +34,89 @@ pub struct UI {
 /// (0, screen_height-UI_HEIGHT)
 /// and scaled.
 impl UI {
+    pub fn new() -> UI {
+        UI {
+            position: Point2 { x: 0.0, y: 0.0 },
+            rect: Rect { x: 0.0, y: 0.0, w: 0.0, h: 0.0 },
+            build_bar: vec!(
+                TowerIcon { tower_type: TowerType::Basic },
+                TowerIcon { tower_type: TowerType::Ninja },
+            ),
+            hovering_on: None,
+            selected_tile_rect: None,
+            selected_tile_type: TowerType::Basic,
+        }
+    }
+
+    fn update_position_and_size(&mut self, ctx: &Context) {
+        let screen_size = ggez::graphics::drawable_size(ctx);
+
+        let scale = Scale {
+            x: screen_size.0 / 800.0,
+            y: screen_size.1 / 600.0,
+        };
+        self.rect = [0.0, 0.0, screen_size.0 / scale.x, UI_HEIGHT / scale.y].into();
+        self.position = Point2 {
+            x: 0.0,
+            y: (screen_size.1 - UI_HEIGHT) / scale.y,
+        };
+    }
+
     pub fn draw(
         &mut self,
         ctx: &mut Context,
-        scale: Scale,
         player: &Player,
         asset_manager: &AssetManager,
     ) -> GameResult {
-        self.draw_background(ctx, scale)?;
-        self.draw_gold(ctx, scale, player)?;
-        self.draw_hp(ctx, scale, player)?;
-        self.draw_build_bar(ctx, scale, asset_manager)?;
-        self.draw_selected_tile(ctx, scale)?;
+        self.update_position_and_size(ctx);
+
+        self.draw_background(ctx)?;
+        self.draw_gold(ctx, player)?;
+        self.draw_hp(ctx, player)?;
+        self.draw_build_bar(ctx, asset_manager)?;
+        self.draw_selected_tile(ctx)?;
         Ok(())
     }
 
-    fn draw_background(&mut self, ctx: &mut Context, scale: Scale) -> GameResult {
-        let screen_size = ggez::graphics::drawable_size(ctx);
-
+    fn draw_background(&mut self, ctx: &mut Context) -> GameResult {
+        // Divide width/height by scale to prevent ggez resize from changing
+        // the relative size of the UI (100% width).
         let rectangle = graphics::Mesh::new_rectangle(
             ctx,
             graphics::DrawMode::fill(),
-            [0.0, 0.0, screen_size.0, UI_HEIGHT * scale.y].into(),
+            self.rect,
             ggez::graphics::Color::new(0.2, 0.3, 0.4, 1.0),
         )?;
 
-        let location = (Point2 {
-            x: 0.0,
-            y: screen_size.1 - UI_HEIGHT * scale.y,
-        },);
-
-        graphics::draw(ctx, &rectangle, location)?;
+        graphics::draw(
+            ctx,
+            &rectangle,
+            DrawParam::default()
+                .dest(self.position)
+        )?;
         Ok(())
     }
 
-    fn draw_gold(&mut self, ctx: &mut Context, scale: Scale, player: &Player) -> GameResult {
-        let screen_rect = ggez::graphics::screen_coordinates(ctx);
-
+    fn draw_gold(&mut self, ctx: &mut Context, player: &Player) -> GameResult {
         let text = graphics::Text::new(format!("GOLD: {}", player.gold));
         let location_x = GOLD_X;
-        let location_y = screen_rect.h - UI_HEIGHT + GOLD_Y;
-        let location = (scale.to_viewport_point(location_x, location_y),);
+        let location_y = self.position.y + GOLD_Y;
+        let location = (Point2 {
+            x: location_x,
+            y: location_y
+        },);
         graphics::draw(ctx, &text, location)?;
         Ok(())
     }
 
-    fn draw_hp(&mut self, ctx: &mut Context, scale: Scale, player: &Player) -> GameResult {
-        let screen_rect = ggez::graphics::screen_coordinates(ctx);
-
+    fn draw_hp(&mut self, ctx: &mut Context, player: &Player) -> GameResult {
         let text = graphics::Text::new(format!("HP: {}", player.health));
         let location_x = HP_X;
-        let location_y = screen_rect.h - UI_HEIGHT + HP_Y;
-        let location = (scale.to_viewport_point(location_x, location_y),);
+        let location_y = self.position.y + HP_Y;
+        let location = (Point2 {
+            x: location_x,
+            y: location_y
+        },);
         graphics::draw(ctx, &text, location)?;
         Ok(())
     }
@@ -92,20 +126,17 @@ impl UI {
     fn draw_build_bar(
         &mut self,
         ctx: &mut Context,
-        scale: Scale,
         asset_manager: &AssetManager,
     ) -> GameResult {
-        let screen_size = ggez::graphics::drawable_size(ctx);
-
         let mut offset = Point2 {
             x: BUILD_BAR_POSITION.x,
-            y: screen_size.1 - UI_HEIGHT + BUILD_BAR_POSITION.y,
+            y: self.position.y + BUILD_BAR_POSITION.y,
         };
         debug!("draw_build_bar: build_bar offset: {:?}", offset);
 
         debug!("draw_build_bar: drawing tower icons.");
         for tower in self.build_bar.iter_mut() {
-            tower.draw(ctx, scale, asset_manager, offset, self.hovering_on == Some(tower.tower_type))?;
+            tower.draw(ctx, asset_manager, offset, self.hovering_on == Some(tower.tower_type))?;
             // Only tiles in x direction for now.
             offset.x += TOWER_ICON_SIZE;
         }
@@ -113,12 +144,12 @@ impl UI {
         Ok(())
     }
 
-    fn draw_selected_tile(&mut self, ctx: &mut Context, scale: Scale) -> GameResult {
+    fn draw_selected_tile(&mut self, ctx: &mut Context) -> GameResult {
         if let Some(tile) = self.selected_tile_rect {
             let rectangle = graphics::Mesh::new_rectangle(
                 ctx,
                 graphics::DrawMode::stroke(3.0),
-                scale.to_viewport_rect([0.0, 0.0, BLOCK_SIZE, BLOCK_SIZE].into()),
+                [0.0, 0.0, BLOCK_SIZE, BLOCK_SIZE].into(),
                 ggez::graphics::Color::new(0.5, 0.0, 0.0, 1.0),
             )?;
 

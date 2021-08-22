@@ -53,7 +53,7 @@ fn main() -> GameResult {
         max_width: 0.0,
         min_height: 0.0,
         max_height: 0.0,
-        resizable: false,
+        resizable: true,
     };
 
     let cb = ggez::ContextBuilder::new("TowerOfDerp", "rrEd")
