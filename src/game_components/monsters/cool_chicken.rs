@@ -1,10 +1,8 @@
 use crate::{
-    asset_system::asset_manager::AssetManager,
+    asset_system::AssetManager,
     game_components::{
-        block::{Block, BLOCK_SIZE},
-        gold::GoldPile,
-        monsters::monster::{Monster, MonsterState},
-        player::Player,
+        monsters::{Monster, MonsterState},
+        Block, GoldPile, Player, BLOCK_SIZE,
     },
     utils::Direction,
 };

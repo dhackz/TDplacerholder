@@ -1,8 +1,6 @@
 use crate::{
-    asset_system::asset_manager::AssetManager,
-    game_components::{
-        block::BLOCK_SIZE, gold::GoldPile, player::Player, towers::tower::TowerType,
-    },
+    asset_system::AssetManager,
+    game_components::{towers::TowerType, GoldPile, Player, BLOCK_SIZE},
     ui_system::tower_icon::{TowerIcon, TOWER_ICON_SIZE},
     utils::Scale,
 };

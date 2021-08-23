@@ -1,4 +1,4 @@
-use crate::asset_system::asset_manager::AssetManager;
+use crate::asset_system::AssetManager;
 
 use log::debug;
 

@@ -1,10 +1,8 @@
-use crate::asset_system::asset_manager::AssetManager;
+use crate::asset_system::AssetManager;
 use crate::game_components::{
-    block::BLOCK_SIZE,
-    board::Board,
-    monsters::monster::MonsterState,
-    player::Player,
-    towers::{basic_tower::*, ninja_tower::*, tower::TowerType},
+    monsters::MonsterState,
+    towers::{BasicTower, NinjaTower, TowerType},
+    Board, Player, BLOCK_SIZE,
 };
 use crate::{level_system::monster_spawner::MonsterSpawner, ui_system::ui::*, utils::Scale};
 

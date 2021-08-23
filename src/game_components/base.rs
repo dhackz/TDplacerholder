@@ -1,4 +1,4 @@
-use crate::{asset_system::asset_manager::AssetManager, game_components::block::BLOCK_SIZE};
+use crate::{asset_system::AssetManager, game_components::BLOCK_SIZE};
 
 use ggez::{
     graphics::{self, DrawParam},

@@ -1,10 +1,4 @@
-use crate::game_components::{
-    base::Base,
-    block::{Block, BLOCK_SIZE},
-    gold::GoldPile,
-    monsters::monster::Monster,
-    towers::tower::Tower,
-};
+use crate::game_components::{monsters::Monster, towers::Tower, Base, Block, GoldPile, BLOCK_SIZE};
 
 pub struct Board {
     pub path_blocks: Vec<Block>,

@@ -1,6 +1,6 @@
 use crate::{
-    asset_system::asset_manager::AssetManager,
-    game_components::{block::Block, gold::GoldPile, player::Player},
+    asset_system::AssetManager,
+    game_components::{Block, GoldPile, Player},
 };
 
 use ggez::{Context, GameResult};

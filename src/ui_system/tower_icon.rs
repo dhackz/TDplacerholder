@@ -1,4 +1,4 @@
-use crate::{asset_system::asset_manager::AssetManager, game_components::towers::tower::TowerType};
+use crate::{asset_system::AssetManager, game_components::towers::TowerType};
 
 use ggez::{
     graphics::{self, DrawParam},

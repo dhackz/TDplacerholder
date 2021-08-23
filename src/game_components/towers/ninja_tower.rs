@@ -1,8 +1,6 @@
 use crate::{
-    asset_system::asset_manager::AssetManager,
-    game_components::{
-        block::BLOCK_SIZE, gold::GoldPile, monsters::monster::Monster, towers::tower::Tower,
-    },
+    asset_system::AssetManager,
+    game_components::{monsters::Monster, towers::Tower, GoldPile, BLOCK_SIZE},
 };
 
 use rand::Rng;
