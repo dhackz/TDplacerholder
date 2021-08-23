@@ -1,16 +1,12 @@
-use crate::{
-    asset_manager::AssetManager,
+use crate::asset_system::asset_manager::AssetManager;
+use crate::game_components::{
     block::BLOCK_SIZE,
     board::Board,
-    monster_spawner::MonsterSpawner,
     monsters::monster::MonsterState,
     player::Player,
-    towers::{basic_tower::*, ninja_tower::*},
-    ui::*,
-    utils::Scale,
+    towers::{basic_tower::*, ninja_tower::*, tower::TowerType},
 };
-
-use crate::towers::tower::TowerType;
+use crate::{level_system::monster_spawner::MonsterSpawner, ui_system::ui::*, utils::Scale};
 
 use ggez::{
     event::{self, EventHandler, KeyCode, KeyMods},
@@ -114,8 +110,7 @@ impl EventHandler for MainState {
         self.board.base.draw(ctx, &self.asset_manager)?;
 
         debug!("MainState: draw: drawing base.");
-        self.ui
-            .draw(ctx, &self.player, &self.asset_manager)?;
+        self.ui.draw(ctx, &self.player, &self.asset_manager)?;
 
         graphics::present(ctx)?;
         Ok(())

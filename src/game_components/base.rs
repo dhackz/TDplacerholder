@@ -1,8 +1,10 @@
-use crate::{asset_manager::AssetManager, BLOCK_SIZE};
+use crate::{asset_system::asset_manager::AssetManager, game_components::block::BLOCK_SIZE};
 
-use ggez::graphics::DrawParam;
-use ggez::mint::Point2;
-use ggez::{graphics, Context, GameResult};
+use ggez::{
+    graphics::{self, DrawParam},
+    mint::Point2,
+    Context, GameResult,
+};
 
 pub const BASE_SIZE: f32 = 60.0;
 pub const BASE_PADDING: f32 = 5.0;
@@ -12,11 +14,7 @@ pub struct Base {
 }
 
 impl Base {
-    pub fn draw(
-        &mut self,
-        ctx: &mut Context,
-        asset_manager: &AssetManager,
-    ) -> GameResult {
+    pub fn draw(&mut self, ctx: &mut Context, asset_manager: &AssetManager) -> GameResult {
         let location = Point2 {
             x: self.position[0] * BLOCK_SIZE + BASE_PADDING,
             y: self.position[1] * BLOCK_SIZE + BASE_PADDING,
@@ -25,8 +23,7 @@ impl Base {
         graphics::draw(
             ctx,
             &asset_manager.base_assets.base_sprite,
-            DrawParam::default()
-                .dest(location),
+            DrawParam::default().dest(location),
         )?;
 
         Ok(())

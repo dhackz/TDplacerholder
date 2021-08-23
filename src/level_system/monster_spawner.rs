@@ -1,6 +1,6 @@
-use crate::{
-    monsters::chicken::Chicken, monsters::cool_chicken::CoolChicken,
-    monsters::monster::MonsterType, Board,
+use crate::game_components::{
+    board::Board,
+    monsters::{chicken::Chicken, cool_chicken::CoolChicken, monster::MonsterType},
 };
 
 pub struct MonsterSpawner {

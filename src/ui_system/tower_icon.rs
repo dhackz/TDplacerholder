@@ -1,10 +1,10 @@
-use crate::asset_manager::AssetManager;
-use crate::towers::tower::TowerType;
+use crate::{asset_system::asset_manager::AssetManager, game_components::towers::tower::TowerType};
 
-use ggez::graphics::{self, DrawParam};
-use ggez::mint::Point2;
-use ggez::Context;
-use ggez::GameResult;
+use ggez::{
+    graphics::{self, DrawParam},
+    mint::Point2,
+    Context, GameResult,
+};
 
 pub const TOWER_ICON_SIZE: f32 = 50.0;
 
@@ -18,7 +18,7 @@ impl TowerIcon {
         ctx: &mut Context,
         asset_manager: &AssetManager,
         location: Point2<f32>,
-        selected: bool
+        selected: bool,
     ) -> GameResult {
         let asset = match self.tower_type {
             TowerType::Basic => {
@@ -27,24 +27,19 @@ impl TowerIcon {
                 } else {
                     &asset_manager.builder_ui_assets.tower_sprite
                 }
-            },
+            }
             TowerType::Ninja => {
                 if selected {
                     &asset_manager.builder_ui_assets.ninja_tower_selected_sprite
                 } else {
                     &asset_manager.builder_ui_assets.ninja_tower_sprite
                 }
-            },
+            }
         };
 
         // Destination isn't scaled by DrawParam.
         debug!("draw: location: {:?}", location);
-        graphics::draw(
-            ctx,
-            asset,
-            DrawParam::default()
-                .dest(location),
-        )?;
+        graphics::draw(ctx, asset, DrawParam::default().dest(location))?;
 
         Ok(())
     }

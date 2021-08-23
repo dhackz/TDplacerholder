@@ -1,4 +1,4 @@
-use crate::asset_manager::AssetManager;
+use crate::asset_system::asset_manager::AssetManager;
 
 use log::debug;
 
@@ -12,22 +12,17 @@ pub struct GoldPile {
 }
 
 impl GoldPile {
-    pub fn draw(
-        &mut self,
-        ctx: &mut Context,
-        asset_manager: &AssetManager,
-    ) -> GameResult {
+    pub fn draw(&mut self, ctx: &mut Context, asset_manager: &AssetManager) -> GameResult {
         let location = Point2 {
             x: self.position[0],
-            y: self.position[1] - 10.0
+            y: self.position[1] - 10.0,
         };
 
         debug!("GoldPile: draw: drawing at location ({:?})", location);
         graphics::draw(
             ctx,
             &asset_manager.item_assets.gold_sprite,
-            DrawParam::default()
-                .dest(location),
+            DrawParam::default().dest(location),
         )?;
 
         Ok(())

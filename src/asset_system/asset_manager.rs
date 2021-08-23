@@ -1,3 +1,5 @@
+use crate::asset_system::monster_assets::MonsterAssets;
+
 use ggez::{audio, graphics, Context};
 
 pub struct TowerAssets {
@@ -5,12 +7,6 @@ pub struct TowerAssets {
     pub tower_ninja_sprite: graphics::Image,
     pub tower_attack_sound: audio::Source,
     pub ninja_tower_strong_attack_sound: audio::Source,
-}
-
-pub struct MonsterAssets {
-    pub chicken_sprite: graphics::Image,
-    pub cool_chicken_sprite: graphics::Image,
-    pub monster_hurt_sound: audio::Source,
 }
 
 pub struct ItemAssets {
@@ -47,12 +43,6 @@ impl AssetManager {
                 .unwrap(),
         };
 
-        let monster_assets = MonsterAssets {
-            chicken_sprite: graphics::Image::new(ctx, "/chicken.png").unwrap(),
-            cool_chicken_sprite: graphics::Image::new(ctx, "/cool_chicken.png").unwrap(),
-            monster_hurt_sound: audio::Source::new(ctx, "/chicken_hurt.ogg").unwrap(),
-        };
-
         let item_assets = ItemAssets {
             gold_sprite: graphics::Image::new(ctx, "/gold_pile.png").unwrap(),
             gold_sound: audio::Source::new(ctx, "/gold.ogg").unwrap(),
@@ -66,12 +56,13 @@ impl AssetManager {
             tower_sprite: graphics::Image::new(ctx, "/ui/tower.png").unwrap(),
             tower_selected_sprite: graphics::Image::new(ctx, "/ui/tower_selected.png").unwrap(),
             ninja_tower_sprite: graphics::Image::new(ctx, "/ui/ninja_tower.png").unwrap(),
-            ninja_tower_selected_sprite: graphics::Image::new(ctx, "/ui/ninja_tower_selected.png").unwrap()
+            ninja_tower_selected_sprite: graphics::Image::new(ctx, "/ui/ninja_tower_selected.png")
+                .unwrap(),
         };
 
         AssetManager {
             tower_assets,
-            monster_assets,
+            monster_assets: MonsterAssets::new(ctx),
             item_assets,
             base_assets,
             builder_ui_assets,

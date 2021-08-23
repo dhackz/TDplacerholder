@@ -1,14 +1,18 @@
-use crate::asset_manager::AssetManager;
-use crate::gold::GoldPile;
-use crate::tower_icon::{TowerIcon, TOWER_ICON_SIZE};
-use crate::towers::tower::TowerType;
-use crate::utils::Scale;
-use crate::{Player, BLOCK_SIZE};
+use crate::{
+    asset_system::asset_manager::AssetManager,
+    game_components::{
+        block::BLOCK_SIZE, gold::GoldPile, player::Player, towers::tower::TowerType,
+    },
+    ui_system::tower_icon::{TowerIcon, TOWER_ICON_SIZE},
+    utils::Scale,
+};
 
-use ggez::graphics::{self, DrawParam};
-use ggez::mint::Point2;
-use ggez::graphics::Rect;
-use ggez::{audio::SoundSource, Context, GameResult};
+use ggez::{
+    audio::SoundSource,
+    graphics::{self, DrawParam, Rect},
+    mint::Point2,
+    Context, GameResult,
+};
 
 pub const UI_HEIGHT: f32 = 180.0;
 
@@ -37,11 +41,20 @@ impl UI {
     pub fn new() -> UI {
         UI {
             position: Point2 { x: 0.0, y: 0.0 },
-            rect: Rect { x: 0.0, y: 0.0, w: 0.0, h: 0.0 },
-            build_bar: vec!(
-                TowerIcon { tower_type: TowerType::Basic },
-                TowerIcon { tower_type: TowerType::Ninja },
-            ),
+            rect: Rect {
+                x: 0.0,
+                y: 0.0,
+                w: 0.0,
+                h: 0.0,
+            },
+            build_bar: vec![
+                TowerIcon {
+                    tower_type: TowerType::Basic,
+                },
+                TowerIcon {
+                    tower_type: TowerType::Ninja,
+                },
+            ],
             hovering_on: None,
             selected_tile_rect: None,
             selected_tile_type: TowerType::Basic,
@@ -88,12 +101,7 @@ impl UI {
             ggez::graphics::Color::new(0.2, 0.3, 0.4, 1.0),
         )?;
 
-        graphics::draw(
-            ctx,
-            &rectangle,
-            DrawParam::default()
-                .dest(self.position)
-        )?;
+        graphics::draw(ctx, &rectangle, DrawParam::default().dest(self.position))?;
         Ok(())
     }
 
@@ -103,7 +111,7 @@ impl UI {
         let location_y = self.position.y + GOLD_Y;
         let location = (Point2 {
             x: location_x,
-            y: location_y
+            y: location_y,
         },);
         graphics::draw(ctx, &text, location)?;
         Ok(())
@@ -115,7 +123,7 @@ impl UI {
         let location_y = self.position.y + HP_Y;
         let location = (Point2 {
             x: location_x,
-            y: location_y
+            y: location_y,
         },);
         graphics::draw(ctx, &text, location)?;
         Ok(())
@@ -123,11 +131,7 @@ impl UI {
 
     /// Draws all tower icons inside the build_bar which can fit inside the UI.
     /// Overflowing tower icons are not drawn.
-    fn draw_build_bar(
-        &mut self,
-        ctx: &mut Context,
-        asset_manager: &AssetManager,
-    ) -> GameResult {
+    fn draw_build_bar(&mut self, ctx: &mut Context, asset_manager: &AssetManager) -> GameResult {
         let mut offset = Point2 {
             x: BUILD_BAR_POSITION.x,
             y: self.position.y + BUILD_BAR_POSITION.y,
@@ -136,7 +140,12 @@ impl UI {
 
         debug!("draw_build_bar: drawing tower icons.");
         for tower in self.build_bar.iter_mut() {
-            tower.draw(ctx, asset_manager, offset, self.hovering_on == Some(tower.tower_type))?;
+            tower.draw(
+                ctx,
+                asset_manager,
+                offset,
+                self.hovering_on == Some(tower.tower_type),
+            )?;
             // Only tiles in x direction for now.
             offset.x += TOWER_ICON_SIZE;
         }
@@ -177,20 +186,19 @@ impl UI {
             x: screen_rect.0 / 800.0, // 800.0 default width.
             y: screen_rect.1 / 600.0, // 600.0 default height.
         };
-        debug!("mouse_motion_event: {:?} {:?} {:?} {:?}", scale, x, y, gold_piles.len());
+        debug!(
+            "mouse_motion_event: {:?} {:?} {:?} {:?}",
+            scale,
+            x,
+            y,
+            gold_piles.len()
+        );
 
         // Check inside game window.
         if x > 0.0 && x < screen_rect.0 && y > 0.0 && y < screen_rect.1 - UI_HEIGHT {
-            self.handle_in_game_hover(
-                scale,
-                x,
-                y,
-                gold_piles,
-                player,
-                asset_manager,
-            );
+            self.handle_in_game_hover(scale, x, y, gold_piles, player, asset_manager);
         } else {
-            self.handle_ui_bar_hover( scale, x, y, );
+            self.handle_ui_bar_hover(scale, x, y);
         }
     }
 
@@ -229,19 +237,12 @@ impl UI {
         });
     }
 
-    pub fn handle_ui_bar_hover(
-        &mut self,
-        scale: Scale,
-        x: f32,
-        y: f32,
-    ) {
+    pub fn handle_ui_bar_hover(&mut self, scale: Scale, x: f32, y: f32) {
         self.selected_tile_rect = None;
 
         // Check if hovering over build bar.
-        let vp_build_bar_position = scale.to_viewport_point(
-            BUILD_BAR_POSITION.x,
-            self.position.y + BUILD_BAR_POSITION.y,
-        );
+        let vp_build_bar_position =
+            scale.to_viewport_point(BUILD_BAR_POSITION.x, self.position.y + BUILD_BAR_POSITION.y);
 
         // Dynamically scales in x-direction (or so is the idea) so can't
         // statically check the right and bottom boundery.
@@ -256,7 +257,8 @@ impl UI {
                 if x > cumulative_width
                     && x < cumulative_width + TOWER_ICON_SIZE * scale.x
                     && y > vp_build_bar_position.y * scale.y
-                    && y < vp_build_bar_position.y + TOWER_ICON_SIZE * scale.y {
+                    && y < vp_build_bar_position.y + TOWER_ICON_SIZE * scale.y
+                {
                     self.hovering_on = Some(tower.tower_type);
                     return;
                 }

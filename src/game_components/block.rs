@@ -1,6 +1,5 @@
-use ggez::{Context, GameResult, graphics};
 use ggez::mint::Point2;
-
+use ggez::{graphics, Context, GameResult};
 
 pub const BLOCK_SIZE: f32 = 35.0;
 
@@ -20,7 +19,6 @@ impl Block {
         let location = (Point2 {
             x: self.position[0] * BLOCK_SIZE,
             y: self.position[1] * BLOCK_SIZE,
-
         },);
 
         graphics::draw(ctx, &rectangle, location)?;

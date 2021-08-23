@@ -22,3 +22,9 @@ impl Scale {
         }
     }
 }
+
+#[derive(Eq, PartialEq)]
+pub enum Direction {
+    Left,
+    Right,
+}

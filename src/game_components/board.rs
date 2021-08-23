@@ -1,6 +1,9 @@
-use crate::{
-    base::Base, block::Block, gold::GoldPile, monsters::monster::Monster, towers::tower::Tower,
-    BLOCK_SIZE,
+use crate::game_components::{
+    base::Base,
+    block::{Block, BLOCK_SIZE},
+    gold::GoldPile,
+    monsters::monster::Monster,
+    towers::tower::Tower,
 };
 
 pub struct Board {

@@ -2,12 +2,7 @@ extern crate pretty_env_logger;
 #[macro_use]
 extern crate log;
 
-use crate::{
-    block::{Block, BLOCK_SIZE},
-    board::Board,
-    main_state::MainState,
-    player::Player,
-};
+use crate::main_state::MainState;
 
 use ggez::{
     conf::{FullscreenType, WindowMode},
@@ -17,20 +12,13 @@ use ggez::{
 use std::env;
 use std::path;
 
-mod asset_manager;
-mod base;
-mod block;
-mod board;
-mod gold;
+mod animation_system;
+mod asset_system;
+mod game_components;
+mod level_system;
 mod main_state;
-mod monster_spawner;
-mod player;
-mod tower_icon;
-mod ui;
+mod ui_system;
 mod utils;
-
-mod monsters;
-mod towers;
 
 fn main() -> GameResult {
     pretty_env_logger::init();

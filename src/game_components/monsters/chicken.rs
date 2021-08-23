@@ -1,21 +1,24 @@
-use crate::monsters::monster::{Monster, MonsterState};
-use crate::{asset_manager::AssetManager, gold::GoldPile, Block, Player, BLOCK_SIZE};
+use crate::{
+    asset_system::asset_manager::AssetManager,
+    game_components::{
+        block::{Block, BLOCK_SIZE},
+        gold::GoldPile,
+        monsters::monster::{Monster, MonsterState},
+        player::Player,
+    },
+    utils::Direction,
+};
 
 use ggez::{
     audio::SoundSource,
     graphics::{self, DrawParam},
+    mint::Point2,
     Context, GameResult,
 };
 
 use rand::*;
 
-#[derive(Eq, PartialEq)]
-pub enum Direction {
-    Left,
-    Right,
-}
-
-pub struct CoolChicken {
+pub struct Chicken {
     pub position: [f32; 2],
     pub speed: f32,
     pub health: f32,
@@ -24,12 +27,12 @@ pub struct CoolChicken {
     pub direction: Direction,
 }
 
-impl CoolChicken {
+impl Chicken {
     pub const SIZE: f32 = 20.0;
     pub const DAMAGE: f32 = 1.0;
 
-    pub fn new() -> CoolChicken {
-        CoolChicken {
+    pub fn new() -> Chicken {
+        Chicken {
             health: 100.0,
             speed: 100.0,
             position: [0.0, 0.0],
@@ -58,8 +61,8 @@ impl CoolChicken {
 
         // Goal is for center of monster to pass center of block position.
         let _goal = path_blocks[self.move_goal].position;
-        let goal_x = _goal[0] * BLOCK_SIZE + BLOCK_SIZE / 2.0 - CoolChicken::SIZE / 2.0;
-        let goal_y = _goal[1] * BLOCK_SIZE + BLOCK_SIZE / 2.0 - CoolChicken::SIZE / 2.0;
+        let goal_x = _goal[0] * BLOCK_SIZE + BLOCK_SIZE / 2.0 - Chicken::SIZE / 2.0;
+        let goal_y = _goal[1] * BLOCK_SIZE + BLOCK_SIZE / 2.0 - Chicken::SIZE / 2.0;
         let goal = [goal_x, goal_y];
 
         // Distance to next goal position.
@@ -99,11 +102,11 @@ impl CoolChicken {
     }
 }
 
-impl Monster for CoolChicken {
+impl Monster for Chicken {
     fn get_center_pos_abs(&self) -> [f32; 2] {
         [
-            self.position[0] + CoolChicken::SIZE / 2.0,
-            self.position[1] + CoolChicken::SIZE / 2.0,
+            self.position[0] + Chicken::SIZE / 2.0,
+            self.position[1] + Chicken::SIZE / 2.0,
         ]
     }
 
@@ -146,7 +149,7 @@ impl Monster for CoolChicken {
     fn update(&mut self, elapsed: f32, path_blocks: &Vec<Block>, player: &mut Player) {
         if self.state == MonsterState::Attacking {
             // Die and deal damange to the player.
-            player.health -= CoolChicken::DAMAGE;
+            player.health -= Chicken::DAMAGE;
             self.state = MonsterState::Dead;
         }
 
@@ -158,41 +161,37 @@ impl Monster for CoolChicken {
         self.try_moving(elapsed, path_blocks);
     }
 
-    fn draw(
-        &mut self,
-        ctx: &mut Context,
-        asset_manager: &AssetManager,
-    ) -> GameResult {
-        let half_width = asset_manager.monster_assets.cool_chicken_sprite.width() as f32 / 2.0;
-        let half_height = asset_manager.monster_assets.cool_chicken_sprite.height() as f32 / 2.0;
+    fn draw(&mut self, ctx: &mut Context, asset_manager: &AssetManager) -> GameResult {
+        let chicken_sprite = &asset_manager.monster_assets.chicken_assets.chicken_sprite;
+        let half_width = chicken_sprite.width() as f32 / 2.0;
+        let half_height = chicken_sprite.height() as f32 / 2.0;
 
         if self.direction == Direction::Left {
             // Flipping along y-axis causes image to end up at a position
             // (-width, 0). Offsetting with (+width/2, -height/2) makes the
             // image center end up at (0,0).
-            let offset_position = [
-                self.position[0] + half_width,
-                self.position[1] - half_height,
-            ];
+            let offset_position = Point2 {
+                x: self.position[0] + half_width,
+                y: self.position[1] - half_height,
+            };
 
             // Flip along y-axis. Scale then move.
             graphics::draw(
                 ctx,
-                &asset_manager.monster_assets.cool_chicken_sprite,
+                chicken_sprite,
                 DrawParam::default()
                     .scale([-1.0, 1.0])
                     .dest(offset_position),
             )?;
         } else {
-            let offset_position = [
-                self.position[0] - half_width + 10.0, /* Image specific x-offset */
-                self.position[1] - half_height,
-            ];
+            let offset_position = Point2 {
+                x: self.position[0] - half_width + 10.0, /* Image specific x-offset */
+                y: self.position[1] - half_height,
+            };
             graphics::draw(
                 ctx,
-                &asset_manager.monster_assets.cool_chicken_sprite,
-                DrawParam::default()
-                    .dest(offset_position),
+                chicken_sprite,
+                DrawParam::default().dest(offset_position),
             )?;
         }
 
