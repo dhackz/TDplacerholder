@@ -2,6 +2,7 @@ use crate::game_components::{
     board::Board,
     monsters::{chicken::Chicken, cool_chicken::CoolChicken, monster::MonsterType},
 };
+use crate::game_views::monsters::{ChickenView, CoolChickenView};
 
 pub struct MonsterSpawner {
     pub spawn_schedule: Vec<(MonsterType, f32)>,
@@ -34,9 +35,13 @@ impl MonsterSpawner {
         for i in 0..self.spawn_schedule.len() {
             if self.spawn_schedule[i].1 < self.elapsed_time {
                 if self.spawn_schedule[i].0 == MonsterType::Chicken {
-                    board.monsters.push(Box::new(Chicken::new()));
+                    board.monster_views.push(Box::new(ChickenView {
+                        chicken: Chicken::new(),
+                    }));
                 } else if self.spawn_schedule[i].0 == MonsterType::CoolChicken {
-                    board.monsters.push(Box::new(CoolChicken::new()));
+                    board.monster_views.push(Box::new(CoolChickenView {
+                        cool_chicken: CoolChicken::new(),
+                    }));
                 }
 
                 if i == self.spawn_schedule.len() - 1 {

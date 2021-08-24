@@ -7,12 +7,7 @@ use crate::{
     utils::Direction,
 };
 
-use ggez::{
-    audio::SoundSource,
-    graphics::{self, DrawParam},
-    mint::Point2,
-    Context, GameResult,
-};
+use ggez::audio::SoundSource;
 
 use rand::*;
 
@@ -157,43 +152,6 @@ impl Monster for Chicken {
         }
 
         self.try_moving(elapsed, path_blocks);
-    }
-
-    fn draw(&mut self, ctx: &mut Context, asset_manager: &AssetManager) -> GameResult {
-        let chicken_sprite = &asset_manager.monster_assets.chicken_assets.walking_sprites[0];
-        let half_width = chicken_sprite.width() as f32 / 2.0;
-        let half_height = chicken_sprite.height() as f32 / 2.0;
-
-        if self.direction == Direction::Left {
-            // Flipping along y-axis causes image to end up at a position
-            // (-width, 0). Offsetting with (+width/2, -height/2) makes the
-            // image center end up at (0,0).
-            let offset_position = Point2 {
-                x: self.position[0] + half_width,
-                y: self.position[1] - half_height,
-            };
-
-            // Flip along y-axis. Scale then move.
-            graphics::draw(
-                ctx,
-                chicken_sprite,
-                DrawParam::default()
-                    .scale([-1.0, 1.0])
-                    .dest(offset_position),
-            )?;
-        } else {
-            let offset_position = Point2 {
-                x: self.position[0] - half_width + 10.0, /* Image specific x-offset */
-                y: self.position[1] - half_height,
-            };
-            graphics::draw(
-                ctx,
-                chicken_sprite,
-                DrawParam::default().dest(offset_position),
-            )?;
-        }
-
-        Ok(())
     }
 
     fn get_current_state(&self) -> MonsterState {

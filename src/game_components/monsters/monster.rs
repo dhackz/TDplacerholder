@@ -3,8 +3,6 @@ use crate::{
     game_components::{Block, GoldPile, Player},
 };
 
-use ggez::{Context, GameResult};
-
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Debug)]
 pub enum MonsterType {
     Chicken,
@@ -31,6 +29,4 @@ pub trait Monster {
     fn get_current_state(&self) -> MonsterState;
 
     fn update(&mut self, elapsed: f32, path_blocks: &Vec<Block>, player: &mut Player);
-
-    fn draw(&mut self, ctx: &mut Context, asset_manager: &AssetManager) -> GameResult;
 }

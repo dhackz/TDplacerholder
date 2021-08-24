@@ -1,9 +1,10 @@
-use crate::game_components::{monsters::Monster, towers::Tower, Base, Block, GoldPile, BLOCK_SIZE};
+use crate::game_components::{towers::Tower, Base, Block, GoldPile, BLOCK_SIZE};
+use crate::game_views::monsters::MonsterView;
 
 pub struct Board {
     pub path_blocks: Vec<Block>,
     pub towers: Vec<Box<dyn Tower>>,
-    pub monsters: Vec<Box<dyn Monster>>,
+    pub monster_views: Vec<Box<dyn MonsterView>>,
     pub gold_piles: Vec<GoldPile>,
     pub base: Base,
 }
@@ -162,7 +163,7 @@ impl Board {
         Board {
             path_blocks,
             towers: Vec::new(),
-            monsters: Vec::new(),
+            monster_views: Vec::new(),
             gold_piles: Vec::new(),
             base: Base {
                 position: [0.0, 8.0],

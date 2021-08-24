@@ -1,6 +1,5 @@
 use crate::{
-    asset_system::AssetManager,
-    game_components::{monsters::Monster, GoldPile},
+    asset_system::AssetManager, game_components::GoldPile, game_views::monsters::MonsterView,
 };
 
 use ggez::{Context, GameResult};
@@ -14,13 +13,16 @@ pub enum TowerType {
 pub trait Tower {
     fn draw(&mut self, ctx: &mut Context, asset_manager: &AssetManager) -> GameResult;
 
-    fn draw_abilities(&mut self, ctx: &mut Context, monsters: &Vec<Box<dyn Monster>>)
-        -> GameResult;
+    fn draw_abilities(
+        &mut self,
+        ctx: &mut Context,
+        monster_views: &Vec<Box<dyn MonsterView>>,
+    ) -> GameResult;
 
     fn update(
         &mut self,
         elapsed: f32,
-        monsters: &mut Vec<Box<dyn Monster>>,
+        monster_views: &mut Vec<Box<dyn MonsterView>>, //TODO: workaround to make separating monster component/view easier.
         gold_piles: &mut Vec<GoldPile>,
         asset_manager: &mut AssetManager,
     );

@@ -47,26 +47,30 @@ impl EventHandler for MainState {
 
         self.monster_spawner.update(elapsed, &mut self.board);
 
-        for monster in self.board.monsters.iter_mut() {
-            monster.update(elapsed, &self.board.path_blocks, &mut self.player);
+        for monster_view in self.board.monster_views.iter_mut() {
+            monster_view.get_monster_mut().update(
+                elapsed,
+                &self.board.path_blocks,
+                &mut self.player,
+            );
         }
 
         debug!(
             "MainState: update: monsters length before removing dead monsters: {}",
-            self.board.monsters.len()
+            self.board.monster_views.len()
         );
         self.board
-            .monsters
-            .retain(|x| x.get_current_state() != MonsterState::Dead);
+            .monster_views
+            .retain(|x| x.get_monster().get_current_state() != MonsterState::Dead);
         debug!(
             "MainState: update: monsters length after removing dead monsters: {}",
-            self.board.monsters.len()
+            self.board.monster_views.len()
         );
 
         for tower in self.board.towers.iter_mut() {
             tower.update(
                 elapsed,
-                &mut self.board.monsters,
+                &mut self.board.monster_views,
                 &mut self.board.gold_piles,
                 &mut self.asset_manager,
             );
@@ -84,8 +88,8 @@ impl EventHandler for MainState {
         }
 
         debug!("MainState: draw: drawing monsters.");
-        for monster in self.board.monsters.iter_mut() {
-            monster.draw(ctx, &self.asset_manager)?;
+        for monster_view in self.board.monster_views.iter_mut() {
+            monster_view.draw(ctx, &self.asset_manager)?;
         }
 
         debug!("MainState: draw: drawing towers.");
@@ -96,7 +100,7 @@ impl EventHandler for MainState {
         debug!("MainState: draw: drawing tower attacks.");
         // Draw tower attacks.
         for tower in self.board.towers.iter_mut() {
-            tower.draw_abilities(ctx, &self.board.monsters)?;
+            tower.draw_abilities(ctx, &self.board.monster_views)?;
         }
 
         debug!("MainState: draw: drawing gold piles.");

@@ -15,6 +15,7 @@ use std::path;
 mod animation_system;
 mod asset_system;
 mod game_components;
+mod game_views;
 mod level_system;
 mod main_state;
 mod ui_system;

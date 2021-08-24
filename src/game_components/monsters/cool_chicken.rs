@@ -7,11 +7,7 @@ use crate::{
     utils::Direction,
 };
 
-use ggez::{
-    audio::SoundSource,
-    graphics::{self, DrawParam},
-    Context, GameResult,
-};
+use ggez::audio::SoundSource;
 
 use rand::*;
 
@@ -156,42 +152,6 @@ impl Monster for CoolChicken {
         }
 
         self.try_moving(elapsed, path_blocks);
-    }
-
-    fn draw(&mut self, ctx: &mut Context, asset_manager: &AssetManager) -> GameResult {
-        let half_width = asset_manager.monster_assets.cool_chicken_sprite.width() as f32 / 2.0;
-        let half_height = asset_manager.monster_assets.cool_chicken_sprite.height() as f32 / 2.0;
-
-        if self.direction == Direction::Left {
-            // Flipping along y-axis causes image to end up at a position
-            // (-width, 0). Offsetting with (+width/2, -height/2) makes the
-            // image center end up at (0,0).
-            let offset_position = [
-                self.position[0] + half_width,
-                self.position[1] - half_height,
-            ];
-
-            // Flip along y-axis. Scale then move.
-            graphics::draw(
-                ctx,
-                &asset_manager.monster_assets.cool_chicken_sprite,
-                DrawParam::default()
-                    .scale([-1.0, 1.0])
-                    .dest(offset_position),
-            )?;
-        } else {
-            let offset_position = [
-                self.position[0] - half_width + 10.0, /* Image specific x-offset */
-                self.position[1] - half_height,
-            ];
-            graphics::draw(
-                ctx,
-                &asset_manager.monster_assets.cool_chicken_sprite,
-                DrawParam::default().dest(offset_position),
-            )?;
-        }
-
-        Ok(())
     }
 
     fn get_current_state(&self) -> MonsterState {

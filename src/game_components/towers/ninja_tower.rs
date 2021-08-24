@@ -1,6 +1,7 @@
 use crate::{
     asset_system::AssetManager,
-    game_components::{monsters::Monster, towers::Tower, GoldPile, BLOCK_SIZE},
+    game_components::{towers::Tower, GoldPile, BLOCK_SIZE},
+    game_views::monsters::MonsterView,
 };
 
 use rand::Rng;
@@ -89,10 +90,10 @@ impl Tower for NinjaTower {
     fn draw_abilities(
         &mut self,
         ctx: &mut Context,
-        monsters: &Vec<Box<dyn Monster>>,
+        monster_views: &Vec<Box<dyn MonsterView>>, //TODO: workaround to make separating monster component/view easier.
     ) -> GameResult {
-        for monster in monsters.iter() {
-            let monster_center = monster.get_center_pos_abs();
+        for monster_view in monster_views.iter() {
+            let monster_center = monster_view.get_monster().get_center_pos_abs();
 
             if self.position_is_in_attack_range(monster_center) {
                 self.draw_attack(ctx, self.get_center_pos_abs(), monster_center)?;
@@ -104,7 +105,7 @@ impl Tower for NinjaTower {
     fn update(
         &mut self,
         elapsed: f32,
-        monsters: &mut Vec<Box<dyn Monster>>,
+        monster_views: &mut Vec<Box<dyn MonsterView>>, //TODO: workaround to make separating monster component/view easier.
         gold_piles: &mut Vec<GoldPile>,
         asset_manager: &mut AssetManager,
     ) {
@@ -120,10 +121,15 @@ impl Tower for NinjaTower {
 
         if self.attack_cooldown == 0.0 {
             let mut damage_dealt = false;
-            for monster in monsters.iter_mut() {
-                if self.position_is_in_attack_range(monster.get_center_pos_abs()) {
+            for monster_view in monster_views.iter_mut() {
+                if self.position_is_in_attack_range(monster_view.get_monster().get_center_pos_abs())
+                {
                     damage_dealt = true;
-                    monster.recieve_damage(NinjaTower::DAMAGE, gold_piles, asset_manager);
+                    monster_view.get_monster_mut().recieve_damage(
+                        NinjaTower::DAMAGE,
+                        gold_piles,
+                        asset_manager,
+                    );
                 }
             }
             if damage_dealt {
@@ -136,12 +142,12 @@ impl Tower for NinjaTower {
             }
         }
         if self.strong_attack_cooldown == 0.0 {
-            if monsters.len() > 0 {
-                let num = rand::thread_rng().gen_range(0..monsters.len());
+            if monster_views.len() > 0 {
+                let num = rand::thread_rng().gen_range(0..monster_views.len());
                 //let mut rng = rand::thread_rng();
                 //let choice = monsters.choose(&mut rng).unwrap();
                 //monsters[rand::thread_rng().gen_range(0..monsters.len())]
-                monsters[num].recieve_damage(
+                monster_views[num].get_monster_mut().recieve_damage(
                     NinjaTower::STRONG_ATTACK_DAMAGE,
                     gold_piles,
                     asset_manager,
