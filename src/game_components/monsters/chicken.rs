@@ -160,7 +160,7 @@ impl Monster for Chicken {
     }
 
     fn draw(&mut self, ctx: &mut Context, asset_manager: &AssetManager) -> GameResult {
-        let chicken_sprite = &asset_manager.monster_assets.chicken_assets.chicken_sprite;
+        let chicken_sprite = &asset_manager.monster_assets.chicken_assets.walking_sprites[0];
         let half_width = chicken_sprite.width() as f32 / 2.0;
         let half_height = chicken_sprite.height() as f32 / 2.0;
 
