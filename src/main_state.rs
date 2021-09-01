@@ -45,7 +45,7 @@ impl EventHandler for MainState {
         let elapsed = self.time.elapsed().as_millis() as f32 / 1000.0;
         debug!("MainState: update: elapsed{}", elapsed);
 
-        self.monster_spawner.update(elapsed, &mut self.board);
+        self.monster_spawner.update(elapsed, &mut self.board, &self.asset_manager);
 
         for monster_view in self.board.monster_views.iter_mut() {
             monster_view.get_monster_mut().update(

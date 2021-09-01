@@ -1,6 +1,7 @@
+use crate::asset_system::AssetManager;
 use crate::game_components::{
     board::Board,
-    monsters::{chicken::Chicken, cool_chicken::CoolChicken, monster::MonsterType},
+    monsters::{cool_chicken::CoolChicken, monster::MonsterType},
 };
 use crate::game_views::monsters::{ChickenView, CoolChickenView};
 
@@ -29,15 +30,18 @@ impl MonsterSpawner {
         }
     }
 
-    pub fn update(&mut self, elapsed: f32, board: &mut Board) {
+    pub fn update(
+        &mut self,
+        elapsed: f32,
+        board: &mut Board,
+        asset_manager: &AssetManager
+    ) {
         self.elapsed_time += elapsed;
 
         for i in 0..self.spawn_schedule.len() {
             if self.spawn_schedule[i].1 < self.elapsed_time {
                 if self.spawn_schedule[i].0 == MonsterType::Chicken {
-                    board.monster_views.push(Box::new(ChickenView {
-                        chicken: Chicken::new(),
-                    }));
+                    board.monster_views.push(Box::new(ChickenView::new(&asset_manager)));
                 } else if self.spawn_schedule[i].0 == MonsterType::CoolChicken {
                     board.monster_views.push(Box::new(CoolChickenView {
                         cool_chicken: CoolChicken::new(),

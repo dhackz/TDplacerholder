@@ -1,4 +1,5 @@
 use crate::{
+    animation_system::Animation,
     asset_system::AssetManager,
     game_components::monsters::{Chicken, Monster},
     game_views::monsters::MonsterView,
@@ -6,7 +7,6 @@ use crate::{
 };
 
 use ggez::{
-    graphics::{self, DrawParam},
     mint::Point2,
     Context, GameResult,
 };
@@ -15,6 +15,29 @@ use ggez::{
 /// attributes, such as animations, of the chicken game component.
 pub struct ChickenView {
     pub chicken: Chicken,
+    pub animations: Animation, // note: only have a single animation for now.
+}
+
+impl ChickenView {
+    pub fn new(asset_manager: &AssetManager) -> ChickenView {
+        // The idea is that mosnter, their properties, and their animations
+        // will be defined in ron files later so they can be changed without
+        // having to recompile the game every single time you want to change an
+        // animation/monster property etc. For now we do it this way since it
+        // is simpler to get started.
+        ChickenView {
+            chicken: Chicken::new(),
+            animations: Animation {
+                current_sprite: 0,
+                next_sprite_interval: 500,
+                next_sprite_time: 0,
+                sprites: vec![
+                    asset_manager.monster_assets.chicken_assets.walking_sprites[0].clone(),
+                    asset_manager.monster_assets.chicken_assets.walking_sprites[1].clone(),
+                ],
+            },
+        }
+    }
 }
 
 impl MonsterView for ChickenView {
@@ -33,23 +56,13 @@ impl MonsterView for ChickenView {
             };
 
             // Flip along y-axis. Scale then move.
-            graphics::draw(
-                ctx,
-                chicken_sprite,
-                DrawParam::default()
-                    .scale([-1.0, 1.0])
-                    .dest(offset_position),
-            )?;
+            self.animations.draw(ctx, self.chicken.direction, asset_manager, offset_position)?;
         } else {
             let offset_position = Point2 {
                 x: self.chicken.position[0] - half_width + 10.0, /* Image specific x-offset */
                 y: self.chicken.position[1] - half_height,
             };
-            graphics::draw(
-                ctx,
-                chicken_sprite,
-                DrawParam::default().dest(offset_position),
-            )?;
+            self.animations.draw(ctx, self.chicken.direction, asset_manager, offset_position)?;
         }
 
         Ok(())
