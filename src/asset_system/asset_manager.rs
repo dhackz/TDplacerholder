@@ -39,7 +39,7 @@ impl AssetManager {
             tower_sprite: graphics::Image::new(ctx, "/tower2.png").unwrap(),
             tower_ninja_sprite: graphics::Image::new(ctx, "/tower_ninja.png").unwrap(),
             tower_attack_sound: audio::Source::new(ctx, "/tower_attack_pop.ogg").unwrap(),
-            ninja_tower_strong_attack_sound: audio::Source::new(ctx, "/NinjaTowerStrongAttack.mp3")
+            ninja_tower_strong_attack_sound: audio::Source::new(ctx, "/tower_attack_pop.ogg")
                 .unwrap(),
         };
 
